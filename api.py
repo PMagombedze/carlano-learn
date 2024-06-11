@@ -111,27 +111,19 @@ class SubmissionResource(Resource):
             return {"error": "Course not found"}, 404
 
         parser = reqparse.RequestParser()
-        parser.add_argument("user_id")
+        parser.add_argument("user_id", required=True, help="User ID cannot be blank!")
         parser.add_argument(
-            "assignment"
+            "assignment", required=True, help="Assignment cannot be blank!"
         )
-        parser.add_argument("due_date")
-        parser.add_argument(
-            "file",
-            type=werkzeug.datastructures.FileStorage,
-            required=True,
-        )
+        parser.add_argument("due_date", required=True, help="Due date cannot be blank!")
 
-        data = parser.parse_args(strict=False)
+        data = parser.parse_args()
         user = User.query.get(data["user_id"])
         if user is None:
             return {"error": "User not found"}, 404
 
         submission_date = datetime.now()
         due_date = datetime.strptime(data["due_date"], "%Y-%m-%dT%H:%M:%S.%fZ")
-
-        file = data["file"]
-        file.save("static/uploads/" + file.filename)
 
         submission = Submission(
             course, user, data["assignment"], submission_date, due_date, file.filename
