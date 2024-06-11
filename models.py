@@ -14,10 +14,14 @@ class User(db.Model):
     is_admin = db.Column(db.Boolean, default=False)
     email = db.Column(db.Text, unique=True, nullable=False)
     password = db.Column(db.Text, nullable=False)
+    name = db.Column(db.Text)
+    surname = db.Column(db.Text)
 
-    def __init__(self, email: EmailStr, password):
+    def __init__(self, email: EmailStr, password, name, surname):
         self.email = email
         self.password = self._hash_password(password)
+        self.name = name
+        self.surname = surname
 
     def _hash_password(self, password):
         hashed_password = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
@@ -68,7 +72,7 @@ class Submission(db.Model):
         self,
         course: Course,
         user: User,
-        assignment: str,
+        assignment,
         submission_date,
         due_date,
     ):

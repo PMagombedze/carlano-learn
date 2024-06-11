@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 from auth import auth
+import os
 from config import Config
 from models import db, User, Course, Submission
 from datetime import datetime
@@ -29,17 +30,23 @@ def create_submission(course_id):
     submission_date = datetime.now()
     due_date = datetime.strptime(due_date, "%Y-%m-%dT%H:%M:%S.%fZ")
 
-    # Removed the file type check, allowing any type of file
-    file.save("uploads/" + file.filename)
+    # Create the directory for the user if it doesn't exist
+    user_dir = f"uploads/{user.name} {user.surname}"
+    if not os.path.exists(user_dir):
+        os.makedirs(user_dir)
+
+    # Save the file with the assignment name as the filename
+    filename = f"{assignment}.pdf"
+    file_path = os.path.join(user_dir, filename)
+    file.save(file_path)
 
     submission = Submission(
-        course, user, assignment, submission_date, due_date, file.filename
+        course, user, assignment, submission_date, due_date, file_path
     )
     db.session.add(submission)
     db.session.commit()
 
     return jsonify({"message": "Assignment submitted successfully!"}), 201
-
 
 with app.app_context():
 

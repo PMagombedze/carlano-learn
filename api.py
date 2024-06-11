@@ -24,6 +24,8 @@ load_dotenv()
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
+    name: str
+    surname: str
 
 
 class Signup(Resource):
@@ -33,6 +35,8 @@ class Signup(Resource):
             user_data = UserCreate(**data)
             email = user_data.email
             password = user_data.password
+            surname = user_data.surname
+            name = user_data.name
         except pydantic.ValidationError as e:
             error_msg = "Invalid email address"
             if e.errors():
@@ -45,7 +49,7 @@ class Signup(Resource):
             return {"error": "Email already exists"}, 400
 
         # Create a new user
-        new_user = User(email=email, password=password)
+        new_user = User(email=email, password=password, name=name, surname=surname)
         db.session.add(new_user)
         db.session.commit()
 
@@ -63,7 +67,13 @@ class Users(Resource):
             return {"error": "Unauthorized access"}, 403
         users = User.query.all()
         return [
-            {"id": str(user.id), "email": user.email, "password": user.password}
+            {
+                "id": str(user.id),
+                "email": user.email,
+                "password": user.password,
+                "name": user.name,
+                "surname": user.surname,
+            }
             for user in users
         ], 200
 
@@ -106,32 +116,30 @@ class ProtectedResource(Resource):
 
 class SubmissionResource(Resource):
     def post(self, course_id):
-        course = Course.query.get(course_id)
-        if course is None:
-            return {"error": "Course not found"}, 404
-
         parser = reqparse.RequestParser()
-        parser.add_argument("user_id", required=True, help="User ID cannot be blank!")
         parser.add_argument(
-            "assignment", required=True, help="Assignment cannot be blank!"
+            "file", type=werkzeug.datastructures.FileStorage, location="files"
+        )
+        parser.add_argument(
+            "submission_date", required=True, help="Submission date cannot be blank!"
         )
         parser.add_argument("due_date", required=True, help="Due date cannot be blank!")
-
         data = parser.parse_args()
-        user = User.query.get(data["user_id"])
-        if user is None:
-            return {"error": "User not found"}, 404
 
-        submission_date = datetime.now()
-        due_date = datetime.strptime(data["due_date"], "%Y-%m-%dT%H:%M:%S.%fZ")
+        course = Course.query.filter_by(id=course_id).first()
+        if not course:
+            return {"error": "Course not found"}, 404
 
         submission = Submission(
-            course, user, data["assignment"], submission_date, due_date, file.filename
+            course_id=course_id,
+            assignment=data["file"].read(),  # Read the uploaded PDF file
+            submission_date=datetime.strptime(data["submission_date"], "%Y-%m-%d"),
+            due_date=datetime.strptime(data["due_date"], "%Y-%m-%d"),
         )
         db.session.add(submission)
         db.session.commit()
 
-        return {"message": "Assignment submitted successfully!"}, 201
+        return {"message": "Submission created successfully"}, 201
 
 
 class CourseResource(Resource):
@@ -142,7 +150,6 @@ class CourseResource(Resource):
         parser.add_argument(
             "teacher_name", required=True, help="Teacher name cannot be blank!"
         )
-        parser.add_argument("description", required=False)
         data = parser.parse_args()
 
         current_user = get_jwt_identity()
@@ -153,7 +160,6 @@ class CourseResource(Resource):
         new_course = Course(
             title=data["title"],
             teacher_name=data["teacher_name"],
-            description=data.get("description", ""),
         )
         db.session.add(new_course)
         db.session.commit()
@@ -174,7 +180,6 @@ class CourseResource(Resource):
                     "id": str(course.id),
                     "title": course.title,
                     "teacher_name": course.teacher_name,
-                    "description": course.description,
                 }
                 for course in courses
             ]
