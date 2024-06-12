@@ -1,6 +1,51 @@
 {% include 'imports.html' %}
 
 
+<script>
+    function isLoggedIn() {
+        return Cookies.get('token') !== undefined
+    };
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const nocache = urlParams.get('nocache');
+
+    if (window.location.pathname === '/dashboard') {
+        if (!isLoggedIn()) {
+            window.location.href = '/'
+        } else if (nocache) {
+            Cookies.remove('token');
+            window.localStorage.clear();
+            window.sessionStorage.clear();
+            window.location.href = '/'
+        }
+    }
+
+    if (window.location.pathname === '/dashboard' && isLoggedIn() && nocache) {
+        Cookies.remove('token');
+        window.localStorage.clear();
+        window.sessionStorage.clear();
+        window.location.href = '/'
+    }
+
+    window.addEventListener('load', () => {
+        if (window.location.pathname === '/dashboard' && !isLoggedIn()) {
+            window.location.href = '/'
+        } else if (nocache) {
+            Cookies.remove('token');
+            window.localStorage.clear();
+            window.sessionStorage.clear();
+            window.location.href = '/'
+        }
+    });
+
+    window.addEventListener('popstate', (event) => {
+        if (window.location.pathname === '/dashboard') {
+            event.preventDefault();
+            window.location.href = '/';
+        }
+    });
+</script>
+
 <style>
     body {
         margin: 0;
@@ -65,6 +110,19 @@
         padding: 20px;
         box-sizing: border-box;
     }
+
+    .sidebar {
+        position: relative;
+        /* add this */
+    }
+
+    .logout {
+        position: absolute;
+        bottom: 20px;
+        left: 20px;
+        width: calc(100% - 40px);
+        text-align: center;
+    }
 </style>
 
 <body>
@@ -80,17 +138,19 @@
                                 d="M4.176 9.032a.5.5 0 0 0-.656.327l-.5 1.7a.5.5 0 0 0 .294.605l4.5 1.8a.5.5 0 0 0 .372 0l4.5-1.8a.5.5 0 0 0 .294-.605l-.5-1.7a.5.5 0 0 0-.656-.327L8 10.466z" />
                         </svg>&nbsp;Carlano</h1>
                 </li>
-                <li><a href="#">Computer Architecture and Organization</a></li>
-                <li><a href="#">Link 3</a></li>
-                <li><a href="#">Link 4</a></li>
-                <li><a href="#">Link 5</a></li>
+                <!---course-links-->
             </ul>
+            <div class="logout">
+                <a onclick="logout()" style="color: #000;">
+                    <span uk-icon="icon: sign-out"></span> Log out of your account
+                </a>
+            </div>
         </div>
         <div class="content">
             <h1 class="content-heading">Dashboard</h1>
             <h2 class="content-subheading" id="user-email"></h2>
             <div class="card-container">
-
+                <!----courses---->
             </div>
         </div>
     </div>
@@ -114,6 +174,32 @@
             `;
                 cardContainer.innerHTML += cardHTML;
             });
+
+            const sidebarList = document.querySelector('.sidebar ul');
+            data.courses.forEach(course => {
+                const listItemHTML = `
+                    <li><a href="#">${course.title}</a></li>
+                `;
+                sidebarList.innerHTML += listItemHTML;
+            });
         })
         .catch(error => console.error('Error fetching courses:', error));
+</script>
+
+<script>
+    function logout() {
+        Cookies.remove('token');
+        Cookies.remove('email');
+        Cookies.remove('userId');
+
+        localStorage.clear();
+
+        sessionStorage.clear();
+
+        history.pushState(null, null, null);
+        window.addEventListener('popstate', function (event) {
+            history.pushState(null, null, null);
+        });
+        window.location.href = '/';
+    }
 </script>
