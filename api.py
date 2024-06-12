@@ -4,6 +4,7 @@ from models import User, db, Course, Submission
 from dotenv import load_dotenv
 import pydantic, werkzeug
 from datetime import datetime
+from EasyFlaskRecaptcha import ReCaptcha
 
 from flask_jwt_extended import (
     JWTManager,
@@ -12,7 +13,7 @@ from flask_jwt_extended import (
     get_jwt_identity,
 )
 
-
+recaptcha = ReCaptcha()
 api = Api()
 jwt = JWTManager()
 
@@ -48,14 +49,18 @@ class Signup(Resource):
         if existing_user:
             return {"error": "Email already exists"}, 400
 
-        # Create a new user
-        new_user = User(email=email, password=password, name=name, surname=surname)
-        db.session.add(new_user)
-        db.session.commit()
 
-        # Generate a JWT token for the new user
-        access_token = create_access_token(identity=email)
-        return {"message": "User created successfully", "token": access_token}, 201
+        if recaptcha.verify():
+            # Create a new user
+            new_user = User(email=email, password=password, name=name, surname=surname)
+            db.session.add(new_user)
+            db.session.commit()
+
+            # Generate a JWT token for the new user
+            access_token = create_access_token(identity=email)
+            return {"message": "User created successfully", "token": access_token}, 201
+        else:
+            return {"message": "recaptcha failed"}
 
 
 class Users(Resource):
@@ -100,12 +105,15 @@ class Login(Resource):
         user = User.query.filter_by(email=email).first()
         if not user:
             return {"message": "User not found"}, 200
-        if user.check_password(password):
-            # Generate a JWT token for the user
-            access_token = create_access_token(identity=email)
-            return {"message": "Logged in successfully", "token": access_token}, 200
+        if recaptcha.verify():
+            if user.check_password(password):
+                # Generate a JWT token for the user
+                access_token = create_access_token(identity=email)
+                return {"message": "Logged in successfully", "token": access_token}, 200
+            else:
+                return {"message": "Invalid password"}, 200
         else:
-            return {"message": "Invalid password"}, 200
+            return {"message": "recaptcha failed"}
 
 
 class ProtectedResource(Resource):

@@ -5,10 +5,20 @@ from config import Config
 from models import db, User, Course, Submission
 from datetime import datetime
 
-from api import api, jwt
+from api import api, jwt, recaptcha
 
 app = Flask(__name__)
 app.config.from_object(Config)
+app.config.update(dict(
+    GOOGLE_RECAPTCHA_ENABLED=True,
+    GOOGLE_RECAPTCHA_SITE_KEY="6LdsZ5opAAAAAHQUPPtHtrjHl_TCe9acD5VLI6O6",
+    GOOGLE_RECAPTCHA_SECRET_KEY="6LdsZ5opAAAAAOr4Rf2gI8yqtQE6TbPtu6ykwUDs",
+    GOOGLE_RECAPTCHA_THEME = "light",
+    GOOGLE_RECAPTCHA_TYPE = "image",
+    GOOGLE_RECAPTCHA_SIZE = "normal",
+    GOOGLE_RECAPTCHA_LANGUAGE = "en",
+    GOOGLE_RECAPTCHA_RTABINDEX = 10,
+))
 app.register_blueprint(auth, url_prefix="/")
 
 
@@ -48,10 +58,12 @@ def create_submission(course_id):
 
     return jsonify({"message": "Assignment submitted successfully!"}), 201
 
+
 with app.app_context():
 
     api.init_app(app)
     jwt.init_app(app)
+    recaptcha.init_app(app)
     db.init_app(app)
     db.create_all()
 
