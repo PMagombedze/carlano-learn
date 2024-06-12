@@ -1,0 +1,119 @@
+{% include 'imports.html' %}
+
+
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+    }
+
+    .dashboard-container {
+        display: flex;
+        height: 100vh;
+    }
+
+    .sidebar {
+        width: 20%;
+        background-color: rgb(255, 255, 255);
+        padding: 20px 0;
+        border-right: 1px solid #ddd;
+    }
+
+    .sidebar ul {
+        padding: 0;
+        list-style: none;
+    }
+
+    .sidebar li {
+        padding: 15px 20px;
+        color: rgb(0, 0, 0);
+        font-weight: 400;
+    }
+
+    .sidebar li a {
+        color: rgb(0, 0, 0);
+        text-decoration: none;
+        font-weight: 400;
+    }
+
+    .content {
+        width: 80%;
+        padding: 20px;
+    }
+
+    .content-heading {
+        font-size: 24px;
+        font-weight: bold;
+    }
+
+    .content-subheading {
+        font-size: 16px;
+        margin-top: 10px;
+        margin-bottom: 20px;
+        font-weight: 400;
+    }
+
+    .card-container {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    .card {
+        width: calc(33.33% - 20px);
+        margin-right: 20px;
+        margin-bottom: 20px;
+        padding: 20px;
+        box-sizing: border-box;
+    }
+</style>
+
+<body>
+    <div class="dashboard-container">
+        <div class="sidebar">
+            <ul>
+                <li>
+                    <h1 id="logo"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor"
+                            class="bi bi-mortarboard-fill" viewBox="0 0 16 16">
+                            <path
+                                d="M8.211 2.047a.5.5 0 0 0-.422 0l-7.5 3.5a.5.5 0 0 0 .025.917l7.5 3a.5.5 0 0 0 .372 0L14 7.14V13a1 1 0 0 0-1 1v2h3v-2a1 1 0 0 0-1-1V6.739l.686-.275a.5.5 0 0 0 .025-.917z" />
+                            <path
+                                d="M4.176 9.032a.5.5 0 0 0-.656.327l-.5 1.7a.5.5 0 0 0 .294.605l4.5 1.8a.5.5 0 0 0 .372 0l4.5-1.8a.5.5 0 0 0 .294-.605l-.5-1.7a.5.5 0 0 0-.656-.327L8 10.466z" />
+                        </svg>&nbsp;Carlano</h1>
+                </li>
+                <li><a href="#">Computer Architecture and Organization</a></li>
+                <li><a href="#">Link 3</a></li>
+                <li><a href="#">Link 4</a></li>
+                <li><a href="#">Link 5</a></li>
+            </ul>
+        </div>
+        <div class="content">
+            <h1 class="content-heading">Dashboard</h1>
+            <h2 class="content-subheading" id="user-email"></h2>
+            <div class="card-container">
+
+            </div>
+        </div>
+    </div>
+</body>
+
+<script>
+    const userEmailElement = document.getElementById('user-email');
+    const email = Cookies.get('email');
+    userEmailElement.textContent = `Welcome, ${email}!`;
+    const studentId = Cookies.get("userId");
+    fetch(`/api/students/${studentId}/courses`)
+        .then(response => response.json())
+        .then(data => {
+            const cardContainer = document.querySelector('.card-container');
+            data.courses.forEach(course => {
+                const cardHTML = `
+                <div class="card uk-background-muted uk-border-rounded">
+                    <h3>${course.title}</h3>
+                    <p class="uk-text-small">${course.teacher_name}</p>
+                </div>
+            `;
+                cardContainer.innerHTML += cardHTML;
+            });
+        })
+        .catch(error => console.error('Error fetching courses:', error));
+</script>

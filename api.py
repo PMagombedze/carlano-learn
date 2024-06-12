@@ -1,10 +1,9 @@
 from flask_restful import Resource, Api, reqparse
 from flask import request, jsonify
-from models import User, db, Course, Submission
+from models import User, db, Course, Submission, CourseEnrollment
 from dotenv import load_dotenv
 import pydantic, werkzeug
 from datetime import datetime
-from EasyFlaskRecaptcha import ReCaptcha
 
 from flask_jwt_extended import (
     JWTManager,
@@ -13,7 +12,6 @@ from flask_jwt_extended import (
     get_jwt_identity,
 )
 
-recaptcha = ReCaptcha()
 api = Api()
 jwt = JWTManager()
 
@@ -49,18 +47,14 @@ class Signup(Resource):
         if existing_user:
             return {"error": "Email already exists"}, 400
 
+        # Create a new user
+        new_user = User(email=email, password=password, name=name, surname=surname)
+        db.session.add(new_user)
+        db.session.commit()
 
-        if recaptcha.verify():
-            # Create a new user
-            new_user = User(email=email, password=password, name=name, surname=surname)
-            db.session.add(new_user)
-            db.session.commit()
-
-            # Generate a JWT token for the new user
-            access_token = create_access_token(identity=email)
-            return {"message": "User created successfully", "token": access_token}, 201
-        else:
-            return {"message": "recaptcha failed"}, 200
+        # Generate a JWT token for the new user
+        access_token = create_access_token(identity=email)
+        return {"message": "User created successfully", "token": access_token}, 201
 
 
 class Users(Resource):
@@ -105,15 +99,16 @@ class Login(Resource):
         user = User.query.filter_by(email=email).first()
         if not user:
             return {"message": "User not found"}, 200
-        if recaptcha.verify():
-            if user.check_password(password):
-                # Generate a JWT token for the user
-                access_token = create_access_token(identity=email)
-                return {"message": "Logged in successfully", "token": access_token}, 200
-            else:
-                return {"message": "Invalid password"}, 200
+        if user.check_password(password):
+            # Generate a JWT token for the user
+            access_token = create_access_token(identity=email)
+            return {
+                "message": "Logged in successfully",
+                "token": access_token,
+                "id": str(user.id),
+            }, 200
         else:
-            return {"message": "recaptcha failed"}, 200
+            return {"message": "Invalid password"}, 200
 
 
 class ProtectedResource(Resource):
@@ -194,6 +189,83 @@ class CourseResource(Resource):
         )
 
 
+class StudentCourses(Resource):
+    def get(self, student_id):
+        student = User.query.get(student_id)
+        if student is None:
+            return jsonify({"error": "Student not found"}), 404
+
+        courses = student.courses
+        course_list = [
+            {
+                "id": course.id,
+                "title": course.title,
+                "teacher_name": course.teacher_name,
+            }
+            for course in courses
+        ]
+
+        return jsonify({"courses": course_list})
+
+
+class EnrollStudent(Resource):
+    def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument(
+            "student_id", required=True, help="Student ID cannot be blank"
+        )
+        parser.add_argument(
+            "course_id", required=True, help="Course ID cannot be blank"
+        )
+        args = parser.parse_args()
+
+        student = User.query.get(args["student_id"])
+        if student is None:
+            return jsonify({"error": "Student not found"}), 404
+
+        course = Course.query.get(args["course_id"])
+        if course is None:
+            return jsonify({"error": "Course not found"}), 404
+
+        if course in student.courses:
+            return jsonify({"error": "Student is already enrolled in this course"}), 400
+
+        enrollment = CourseEnrollment(
+            user_id=args["student_id"], course_id=args["course_id"]
+        )
+        db.session.add(enrollment)
+        db.session.commit()
+
+        return jsonify({"message": "Student enrolled in course successfully"})
+
+
+class UnenrollCourse(Resource):
+    def delete(self, student_id, course_id):
+        student = User.query.get(student_id)
+        if student is None:
+            return jsonify({"error": "Student not found"}), 404
+
+        course = Course.query.get(course_id)
+        if course is None:
+            return jsonify({"error": "Course not found"}), 404
+
+        enrollment = CourseEnrollment.query.filter_by(
+            user_id=student_id, course_id=course_id
+        ).first()
+        if enrollment is None:
+            return jsonify({"error": "Student is not enrolled in this course"}), 400
+
+        db.session.delete(enrollment)
+        db.session.commit()
+
+        return jsonify({"message": "Student unenrolled from course successfully"})
+
+
+api.add_resource(
+    UnenrollCourse, "/api/students/<string:student_id>/<string:course_id>/courses"
+)
+api.add_resource(EnrollStudent, "/api/students/enroll")
+api.add_resource(StudentCourses, "/api/students/<string:student_id>/courses")
 api.add_resource(CourseResource, "/api/courses")
 api.add_resource(SubmissionResource, "/api/courses/<string:course_id>/submissions")
 api.add_resource(ProtectedResource, "/api/protected")

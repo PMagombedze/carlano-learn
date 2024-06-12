@@ -1,31 +1,21 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from auth import auth
+from views import views
 import os
 from config import Config
 from models import db, User, Course, Submission
 from datetime import datetime
 from dotenv import load_dotenv
 
-from api import api, jwt, recaptcha
+from api import api, jwt
 
 app = Flask(__name__)
 app.config.from_object(Config)
 
 load_dotenv()
 
-app.config.update(
-    dict(
-        GOOGLE_RECAPTCHA_ENABLED=True,
-        GOOGLE_RECAPTCHA_SITE_KEY=os.getenv("GOOGLE_RECAPTCHA_SITE_KEY"),
-        GOOGLE_RECAPTCHA_SECRET_KEY=os.getenv("GOOGLE_RECAPTCHA_SECRET_KEY"),
-        GOOGLE_RECAPTCHA_THEME="light",
-        GOOGLE_RECAPTCHA_TYPE="image",
-        GOOGLE_RECAPTCHA_SIZE="normal",
-        GOOGLE_RECAPTCHA_LANGUAGE="en",
-        GOOGLE_RECAPTCHA_RTABINDEX=10,
-    )
-)
 app.register_blueprint(auth, url_prefix="/")
+app.register_blueprint(views, url_prefix="/")
 
 
 @app.route("/api/courses/submissions/<string:course_id>", methods=["POST"])
@@ -65,11 +55,20 @@ def create_submission(course_id):
     return jsonify({"message": "Assignment submitted successfully!"}), 201
 
 
+@app.errorhandler(500)
+def internal_server_error(e):
+    return render_template("error/server.html"), 500
+
+
+@app.errorhandler(404)
+def client_error(e):
+    return render_template("error/client.html"), 404
+
+
 with app.app_context():
 
     api.init_app(app)
     jwt.init_app(app)
-    recaptcha.init_app(app)
     db.init_app(app)
     db.create_all()
 
