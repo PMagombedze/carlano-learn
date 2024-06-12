@@ -60,7 +60,7 @@ class Signup(Resource):
             access_token = create_access_token(identity=email)
             return {"message": "User created successfully", "token": access_token}, 201
         else:
-            return {"message": "recaptcha failed"}
+            return {"message": "recaptcha failed"}, 200
 
 
 class Users(Resource):
@@ -113,7 +113,7 @@ class Login(Resource):
             else:
                 return {"message": "Invalid password"}, 200
         else:
-            return {"message": "recaptcha failed"}
+            return {"message": "recaptcha failed"}, 200
 
 
 class ProtectedResource(Resource):

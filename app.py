@@ -13,16 +13,18 @@ app.config.from_object(Config)
 
 load_dotenv()
 
-app.config.update(dict(
-    GOOGLE_RECAPTCHA_ENABLED=True,
-    GOOGLE_RECAPTCHA_SITE_KEY=os.getenv("GOOGLE_RECAPTCHA_SITE_KEY"),
-    GOOGLE_RECAPTCHA_SECRET_KEY=os.getenv("GOOGLE_RECAPTCHA_SECRET_KEY"),
-    GOOGLE_RECAPTCHA_THEME = "light",
-    GOOGLE_RECAPTCHA_TYPE = "image",
-    GOOGLE_RECAPTCHA_SIZE = "normal",
-    GOOGLE_RECAPTCHA_LANGUAGE = "en",
-    GOOGLE_RECAPTCHA_RTABINDEX = 10,
-))
+app.config.update(
+    dict(
+        GOOGLE_RECAPTCHA_ENABLED=True,
+        GOOGLE_RECAPTCHA_SITE_KEY=os.getenv("GOOGLE_RECAPTCHA_SITE_KEY"),
+        GOOGLE_RECAPTCHA_SECRET_KEY=os.getenv("GOOGLE_RECAPTCHA_SECRET_KEY"),
+        GOOGLE_RECAPTCHA_THEME="light",
+        GOOGLE_RECAPTCHA_TYPE="image",
+        GOOGLE_RECAPTCHA_SIZE="normal",
+        GOOGLE_RECAPTCHA_LANGUAGE="en",
+        GOOGLE_RECAPTCHA_RTABINDEX=10,
+    )
+)
 app.register_blueprint(auth, url_prefix="/")
 
 
