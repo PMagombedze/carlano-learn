@@ -7,7 +7,7 @@ from models import db, User, Course, Submission
 from datetime import datetime
 from dotenv import load_dotenv
 
-from api import api, jwt
+from api import api, jwt, mail
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -70,6 +70,7 @@ with app.app_context():
     api.init_app(app)
     jwt.init_app(app)
     db.init_app(app)
+    mail.init_app(app)
     db.create_all()
 
 if __name__ == "__main__":

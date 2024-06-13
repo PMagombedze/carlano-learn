@@ -11,7 +11,7 @@
                 <path
                     d="M4.176 9.032a.5.5 0 0 0-.656.327l-.5 1.7a.5.5 0 0 0 .294.605l4.5 1.8a.5.5 0 0 0 .372 0l4.5-1.8a.5.5 0 0 0 .294-.605l-.5-1.7a.5.5 0 0 0-.656-.327L8 10.466z" />
             </svg>&nbsp;Carlano</h1>
-        <h2 class="uk-margin-top" style="font-size: 17px;font-weight: 500;">Log into your account</h2>
+        <h2 class="uk-margin-top" style="font-size: 17px;font-weight: 500;">Create new account</h2>
         <h3 class="uk-margin-top" style="font-size: 14px;">Continue with</h3>
 
         <div class="uk-flex uk-flex-center uk-margin-top">
@@ -53,8 +53,24 @@
 
         <div class="uk-margin-top">
             <div class="uk-inline uk-flex uk-flex-center">
+                <span class="uk-form-icon" uk-icon="icon: user"></span>
+                <input class="uk-input uk-border-rounded uk-width-1-1 uk-background-muted" name="name" id="name"
+                    type="text" placeholder="First Name">
+            </div>
+        </div>
+
+        <div class="uk-margin-top">
+            <div class="uk-inline uk-flex uk-flex-center">
+                <span class="uk-form-icon" uk-icon="icon: user"></span>
+                <input class="uk-input uk-width-1-1 uk-border-rounded uk-background-muted" name="surname" id="surname"
+                    type="text" placeholder="Last Name">
+            </div>
+        </div>
+
+        <div class="uk-margin-top">
+            <div class="uk-inline uk-flex uk-flex-center">
                 <span class="uk-form-icon" uk-icon="icon: mail"></span>
-                <input class="uk-input uk-border-rounded uk-width-1-1 uk-background-muted" name="email" id="email"
+                <input class="uk-input uk-width-1-1 uk-border-rounded uk-background-muted" name="email" id="email"
                     type="email" placeholder="Email">
             </div>
         </div>
@@ -66,12 +82,10 @@
                     type="password" placeholder="Password">
             </div>
         </div>
-        <h3 class="uk-margin-top uk-text-small"><a href="/auth/forgot_password" style="font-weight: 500;">Forgot
-                password?</a></h3>
         <button class="uk-button uk-width-1-1 uk-margin-top uk-border-rounded"
             style="background-color: hsl(240 5.9% 10%);color:#eee;">
             <span id="spinner" style="display: none;" uk-spinner="ratio: 0.5"></span>
-            Login
+            Sign Up
         </button>
 
         <script>
@@ -85,8 +99,8 @@
                 }, 1000);
             });
         </script>
-        <h3 class="uk-margin-top" style="font-size: 14px;">Don't have an account? <a href="/auth/create_account"
-                style="font-weight: 500;">Register here</a></h3>
+        <h3 class="uk-margin-top" style="font-size: 14px;">Already have an account? <a href="/"
+                style="font-weight: 500;">Login here</a></h3>
 
     </div>
 </form>
@@ -95,10 +109,13 @@
     const form = document.getElementById('loginForm')
     const emailInput = document.getElementById('email')
     const passwordInput = document.getElementById('password')
+    const nameInput = document.getElementById('name')
+    const surnameInput = document.getElementById('surname')
     const errorDiv = document.createElement('div')
     errorDiv.style.color = '#Cc0202'
+    errorDiv.style.marginTop = "10px";
 
-    const forgotPasswordLink = document.querySelector('h3 a[href="/auth/forgot_password"]');
+    const forgotPasswordLink = document.querySelector('button');
 
     forgotPasswordLink.parentNode.insertBefore(errorDiv, forgotPasswordLink);
 
@@ -107,8 +124,10 @@
 
         const email = emailInput.value
         const password = passwordInput.value
+        const name = nameInput.value
+        const surname = surnameInput.value
 
-        if (email === '' || password === '') {
+        if (email === '' || password === '' || name === '' || surname === '') {
             errorDiv.innerText = 'Empty fields'
             setTimeout(() => {
                 errorDiv.innerText = ''
@@ -116,25 +135,20 @@
             return
         }
 
-        axios.post('/api/login', {
+        axios.post('/api/signup', {
             email,
-            password
+            password,
+            name,
+            surname
         }, {
-            params: {
-                _timestamp: new Date().getTime()
-            }
         })
             .then(response => {
                 if (response.data.token) {
                     const token = response.data.token
-                    const userId = response.data.id
-                    Cookies.set('token', token, { expires: 1 })
-                    Cookies.set('email', email, { expires: 1 })
-                    Cookies.set('userId', userId, { expires: 1 })
                     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
-                    window.location.href = '/dashboard'
+                    window.location.href = '/'
                 } else {
-                    errorDiv.innerText = 'Invalid email or password'
+                    errorDiv.innerText = 'Please enter strong password/ valid email'
                     setTimeout(() => {
                         errorDiv.innerText = ''
                     }, 1000)
@@ -153,14 +167,11 @@
     axios.defaults.headers.common['Pragma'] = 'no-cache';
     axios.defaults.headers.common['Expires'] = '0';
 
-    if (window.location.pathname === '/dashboard') {
+    if (window.location.pathname === '/') {
         const token = Cookies.get('token')
         if (token) {
             axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
             axios.get('/api/protected', {
-                params: {
-                    _timestamp: new Date().getTime()
-                }
             })
                 .then(response => {
                     if (response.data.message === 'Token is valid') {
@@ -182,13 +193,13 @@
     if (window.location.pathname === '/') {
         const token = Cookies.get('token')
         if (token) {
-            window.location.href = '/dashboard';
+            window.location.href = '/';
         }
     }
 
     window.history.forward();
     window.onhashchange = function () {
-        if (window.location.pathname === '/dashboard' && !Cookies.get('token')) {
+        if (window.location.pathname === '/' && !Cookies.get('token')) {
             window.location.href = '/';
         }
     }

@@ -4,16 +4,21 @@ from models import User, db, Course, Submission, CourseEnrollment
 from dotenv import load_dotenv
 import pydantic, werkzeug
 from datetime import datetime
+from flask_mail import Mail, Message
+import os
+
 
 from flask_jwt_extended import (
     JWTManager,
     jwt_required,
     create_access_token,
     get_jwt_identity,
+    decode_token,
 )
 
 api = Api()
 jwt = JWTManager()
+mail = Mail()
 
 from pydantic import BaseModel, EmailStr
 
@@ -261,6 +266,57 @@ class UnenrollCourse(Resource):
         return jsonify({"message": "Student unenrolled from course successfully"})
 
 
+class ForgotPassword(Resource):
+    def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument("email", required=True, help="Email cannot be blank!")
+        data = parser.parse_args()
+
+        user = User.query.filter_by(email=data["email"]).first()
+        if not user:
+            return {"error": "User not found"}, 404
+
+        # Generate a password reset token
+        reset_token = create_access_token(identity=user.email, expires_delta=False)
+
+        # Send the reset token to the user via email
+        msg = Message(
+            "Password Reset Token",
+            sender=("Carlano Team", os.getenv("MAIL_USERNAME")),
+            recipients=[user.email],
+        )
+        msg.body = f"Hello {user.name},\n\nPlease click on the following link to reset your password: http://localhost:5000/auth/reset_password?token={reset_token}\n\nBest regards,\nThe Support Team"
+        mail.send(msg)
+
+        return {"message": "Password reset token sent to your email"}, 200
+
+    @jwt_required()
+    def put(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument(
+            "new_password", required=True, help="New password cannot be blank!"
+        )
+        parser.add_argument(
+            "confirm_password", required=True, help="Confirm password cannot be blank!"
+        )
+        data = parser.parse_args()
+
+        if data["new_password"] != data["confirm_password"]:
+            return {"error": "New password and confirm password must match"}, 400
+
+        # Get the user from the JWT token
+        user = User.query.filter_by(email=get_jwt_identity()).first()
+        if not user:
+            return {"error": "User not found"}, 404
+
+        # Update the user's password
+        user.password = User._hash_password(self, data["new_password"])
+        db.session.commit()
+
+        return {"message": "Password updated successfully"}, 200
+
+
+api.add_resource(ForgotPassword, "/api/forgot_password")
 api.add_resource(
     UnenrollCourse, "/api/students/<string:student_id>/<string:course_id>/courses"
 )

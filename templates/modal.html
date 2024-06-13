@@ -8,24 +8,19 @@
             </select>
             <div style="margin-bottom: 20px;"></div>
             <button class="uk-button uk-width-1-1 uk-border-rounded" id="add-course-btn"
-                style="text-transform: capitalize;background-color: hsl(240 5.9% 10%);color:#eee;">
-                Enroll
-            </button>
+                style="text-transform: capitalize;background-color: hsl(240 5.9% 10%);color:#eee;">Enroll</button>
         </form>
     </div>
 </div>
-
 
 <script>
     const addCourseModal = document.getElementById('add-course-modal');
     const addCourseBtn = document.getElementById('add-course-btn');
     const courseSelect = document.getElementById('course-select');
 
-    document.getElementById('add-course').addEventListener('click', () => {
-        UIkit.modal(addCourseModal).show();
-    });
 
-    addCourseBtn.addEventListener('click', () => {
+    // Define a function to handle the add course button click
+    function handleAddCourseButtonClick() {
         const selectedCourse = courseSelect.value;
 
         fetch('/api/students/enroll', {
@@ -42,6 +37,12 @@
             .catch(error => console.error('Error adding course:', error));
 
         UIkit.modal(addCourseModal).hide();
+    }
+    addCourseBtn.addEventListener('click', handleAddCourseButtonClick);
+
+    
+    document.getElementById('add-course').addEventListener('click', () => {
+        UIkit.modal(addCourseModal).show();
     });
 
     fetch('/api/courses')
