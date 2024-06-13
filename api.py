@@ -248,6 +248,9 @@ class CourseResource(Resource):
         if not user or not user.is_admin:
             return {"error": "Unauthorized access"}, 403
 
+        if Course.query.filter_by(title=data["title"]).first():
+            return {"error": "Course with this title already exists"}, 400
+
         new_course = Course(
             title=data["title"],
             teacher_name=data["teacher_name"],
@@ -257,13 +260,7 @@ class CourseResource(Resource):
 
         return jsonify({"message": "Course created successfully"})
 
-    # @jwt_required()
     def get(self):
-        # current_user = get_jwt_identity()
-        # user = User.query.filter_by(email=current_user).first()
-        # if not user or not user.is_admin:
-        #     return {"error": "Unauthorized access"}, 403
-
         courses = Course.query.all()
         return jsonify(
             [
@@ -275,6 +272,22 @@ class CourseResource(Resource):
                 for course in courses
             ]
         )
+
+    @jwt_required()
+    def delete(self, course_id):
+        current_user = get_jwt_identity()
+        user = User.query.filter_by(email=current_user).first()
+        if not user or not user.is_admin:
+            return {"error": "Unauthorized access"}, 403
+
+        course = Course.query.filter_by(id=course_id).first()
+        if not course:
+            return {"error": "Course not found"}, 404
+
+        db.session.delete(course)
+        db.session.commit()
+
+        return {"message": "Course deleted successfully"}, 200
 
 
 class StudentCourses(Resource):
@@ -412,7 +425,7 @@ api.add_resource(
 )
 api.add_resource(EnrollStudent, "/api/students/enroll")
 api.add_resource(StudentCourses, "/api/students/<string:student_id>/courses")
-api.add_resource(CourseResource, "/api/courses")
+api.add_resource(CourseResource, "/api/courses", "/api/courses/<string:course_id>")
 api.add_resource(SubmissionResource, "/api/courses/<string:course_id>/submissions")
 api.add_resource(ProtectedResource, "/api/protected")
 api.add_resource(Signup, "/api/signup")
