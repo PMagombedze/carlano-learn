@@ -137,6 +137,7 @@
                             <path
                                 d="M4.176 9.032a.5.5 0 0 0-.656.327l-.5 1.7a.5.5 0 0 0 .294.605l4.5 1.8a.5.5 0 0 0 .372 0l4.5-1.8a.5.5 0 0 0 .294-.605l-.5-1.7a.5.5 0 0 0-.656-.327L8 10.466z" />
                         </svg>&nbsp;Carlano</h1>
+                        <h1 id="add-course"><span uk-icon="icon: plus-circle"></span>Add Course</h1>
                 </li>
                 <!---course-links-->
             </ul>
@@ -170,9 +171,32 @@
                 <div class="card uk-background-muted uk-border-rounded">
                     <h3>${course.title}</h3>
                     <p class="uk-text-small">${course.teacher_name}</p>
+                    <p id="unenroll" style="font-weight:600;font-size:12px;cursor:hand;">Unenroll</p>
                 </div>
             `;
                 cardContainer.innerHTML += cardHTML;
+
+                const unenrollButton = cardContainer.querySelector(`#unenroll`);
+                unenrollButton.addEventListener('click', () => {
+                    const studentId = Cookies.get('userId');
+                    const courseId = course.id;
+                    fetch(`/api/students/${studentId}/${courseId}/courses`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log(`Unenrolled from course ${courseId}`);
+                            // Update the UI to reflect the change
+                            unenrollButton.textContent = 'Unenrolled';
+                            unenrollButton.disabled = true;
+                            location.reload();
+                        })
+                        .catch(error => console.error('Error unenrolling:', error));
+                });
+
             });
 
             const sidebarList = document.querySelector('.sidebar ul');

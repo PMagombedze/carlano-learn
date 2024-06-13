@@ -169,12 +169,12 @@ class CourseResource(Resource):
 
         return jsonify({"message": "Course created successfully"})
 
-    @jwt_required()
+    # @jwt_required()
     def get(self):
-        current_user = get_jwt_identity()
-        user = User.query.filter_by(email=current_user).first()
-        if not user or not user.is_admin:
-            return {"error": "Unauthorized access"}, 403
+        # current_user = get_jwt_identity()
+        # user = User.query.filter_by(email=current_user).first()
+        # if not user or not user.is_admin:
+        #     return {"error": "Unauthorized access"}, 403
 
         courses = Course.query.all()
         return jsonify(
