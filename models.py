@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 import bcrypt
 import uuid
 from pydantic import EmailStr
+from flask_migrate import Migrate
 
 db = SQLAlchemy()
 

@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, render_template
 from auth import auth
 from views import views
 import os
+from flask_migrate import Migrate
 from config import Config
 from models import db, User, Course, Submission
 from datetime import datetime
@@ -11,6 +12,7 @@ from api import api, jwt, mail
 
 app = Flask(__name__)
 app.config.from_object(Config)
+migrate = Migrate(app, db)
 
 load_dotenv()
 

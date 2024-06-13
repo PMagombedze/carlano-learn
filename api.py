@@ -3,9 +3,10 @@ from flask import request, jsonify
 from models import User, db, Course, Submission, CourseEnrollment
 from dotenv import load_dotenv
 import pydantic, werkzeug
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask_mail import Mail, Message
 import os
+import re
 
 
 from flask_jwt_extended import (
@@ -23,6 +24,84 @@ mail = Mail()
 from pydantic import BaseModel, EmailStr
 
 load_dotenv()
+
+
+commonPasswords = [
+    "123456",
+    "password",
+    "123456789",
+    "12345678",
+    "12345",
+    "1234567",
+    "admin",
+    "123123",
+    "qwerty",
+    "abc123",
+    "letmein",
+    "monkey",
+    "111111",
+    "password1",
+    "qwerty123",
+    "dragon",
+    "1234",
+    "baseball",
+    "iloveyou",
+    "trustno1",
+    "sunshine",
+    "princess",
+    "football",
+    "welcome",
+    "shadow",
+    "superman",
+    "michael",
+    "ninja",
+    "mustang",
+    "jessica",
+    "charlie",
+    "ashley",
+    "bailey",
+    "passw0rd",
+    "master",
+    "love",
+    "hello",
+    "freedom",
+    "whatever",
+    "nicole",
+    "jordan",
+    "cameron",
+    "secret",
+    "summer",
+    "1q2w3e4r",
+    "zxcvbnm",
+    "starwars",
+    "computer",
+    "taylor",
+    "startrek",
+    "123456",
+    "123456789",
+    "qwerty",
+    "password",
+    "12345",
+    "qwerty123",
+    "1q2w3e",
+    "12345678",
+    "111111",
+    "1234567890",
+]
+
+
+def is_secure_password(password):
+    if len(password) < 8:
+        return False
+    if not re.search(r"\d", password):
+        return False
+    if not re.search(r"[A-Z]", password):
+        return False
+    if not re.search(r"[a-z]", password):
+        return False
+    if password in commonPasswords:
+        return False
+    return True
 
 
 class UserCreate(BaseModel):
@@ -52,7 +131,11 @@ class Signup(Resource):
         if existing_user:
             return {"error": "Email already exists"}, 400
 
-        # Create a new user
+        if is_secure_password(password) == False:
+            return {
+                "error": "Password should contain at least 8 characters, an uppercase and a lowercase character"
+            }, 400
+
         new_user = User(email=email, password=password, name=name, surname=surname)
         db.session.add(new_user)
         db.session.commit()
@@ -276,8 +359,10 @@ class ForgotPassword(Resource):
         if not user:
             return {"error": "User not found"}, 404
 
-        # Generate a password reset token
-        reset_token = create_access_token(identity=user.email, expires_delta=False)
+        # Generate a password reset token that expires after 5 minutes
+        reset_token = create_access_token(
+            identity=user.email, expires_delta=timedelta(minutes=5)
+        )
 
         # Send the reset token to the user via email
         msg = Message(
@@ -310,6 +395,11 @@ class ForgotPassword(Resource):
             return {"error": "User not found"}, 404
 
         # Update the user's password
+        if is_secure_password(data["new_password"]) == False:
+            return {
+                "error": "Password should contain at least 8 characters, an uppercase and a lowercase character"
+            }, 400
+
         user.password = User._hash_password(self, data["new_password"])
         db.session.commit()
 

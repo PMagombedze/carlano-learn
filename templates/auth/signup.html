@@ -112,7 +112,8 @@
     const nameInput = document.getElementById('name')
     const surnameInput = document.getElementById('surname')
     const errorDiv = document.createElement('div')
-    errorDiv.style.color = '#Cc0202'
+    errorDiv.style.color = '#Cc0202';
+    errorDiv.style.fontSize = '14px';
     errorDiv.style.marginTop = "10px";
 
     const forgotPasswordLink = document.querySelector('button');
@@ -148,7 +149,7 @@
                     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
                     window.location.href = '/'
                 } else {
-                    errorDiv.innerText = 'Please enter strong password/ valid email'
+                    errorDiv.innerText = 'An error occurred'
                     setTimeout(() => {
                         errorDiv.innerText = ''
                     }, 1000)
@@ -156,10 +157,18 @@
             })
             .catch(error => {
                 console.error(error)
-                errorDiv.innerText = 'An error occurred. Please try again later.'
-                setTimeout(() => {
-                    errorDiv.innerText = ''
-                }, 1000)
+                if (error.response.status === 400) {
+                    errorDiv.innerText = 'Password should contain 8 characters or more, an uppercase and lower case character';
+                    setTimeout(() => {
+                        errorDiv.innerText = ''
+                    }, 1000)
+                }
+                else if(error.response.status === 500) {
+                    errorDiv.innerText = 'An error occurred. Please try again later.'
+                    setTimeout(() => {
+                        errorDiv.innerText = ''
+                    }, 1000)
+                }
             })
     })
 
