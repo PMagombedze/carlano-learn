@@ -1,0 +1,58 @@
+<!-- Add a modal container to the HTML body -->
+<div id="add-course-modal" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-border-rounded">
+        <h4 class="uk-modal-title uk-text-bold" style="font-size: 24px;">Add Course</h4>
+        <form>
+            <select id="course-select" class="uk-select uk-width-1-1 uk-background-muted uk-border-rounded">
+                <!-- options will be populated dynamically -->
+            </select>
+            <div style="margin-bottom: 20px;"></div>
+            <button class="uk-button uk-width-1-1 uk-border-rounded" id="add-course-btn"
+                style="text-transform: capitalize;background-color: hsl(240 5.9% 10%);color:#eee;">
+                Enroll
+            </button>
+        </form>
+    </div>
+</div>
+
+
+<script>
+    const addCourseModal = document.getElementById('add-course-modal');
+    const addCourseBtn = document.getElementById('add-course-btn');
+    const courseSelect = document.getElementById('course-select');
+
+    document.getElementById('add-course').addEventListener('click', () => {
+        UIkit.modal(addCourseModal).show();
+    });
+
+    addCourseBtn.addEventListener('click', () => {
+        const selectedCourse = courseSelect.value;
+
+        fetch('/api/students/enroll', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ course_id: selectedCourse, student_id: studentId })
+        })
+            .then(response => response.json())
+            .then(data => {
+                console.log(`Course added successfully!`);
+            })
+            .catch(error => console.error('Error adding course:', error));
+
+        UIkit.modal(addCourseModal).hide();
+    });
+
+    fetch('/api/courses')
+        .then(response => response.json())
+        .then(data => {
+            const courseSelect = document.getElementById('course-select');
+            const courseOptions = data.map(course => {
+                return `<option value="${course.id}">${course.title}</option>`;
+            });
+            courseSelect.innerHTML = courseOptions.join('');
+        })
+        .catch(error => console.error('Error fetching courses:', error));
+
+</script>
