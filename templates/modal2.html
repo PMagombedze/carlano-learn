@@ -2,12 +2,22 @@
 <div id="add-course-modal" uk-modal>
     <div class="uk-modal-dialog uk-modal-body uk-border-rounded">
         <h4 class="uk-modal-title uk-text-bold" style="font-size: 24px;">Add Assignment</h4>
-        <form class="uk-form">
+        <form class="uk-form" action="/api/students/assignments" method="post" enctype="multipart/form-data">
+            
+            
+            <select id="course-select" name="course" class="uk-select uk-width-1-1 uk-background-muted uk-border-rounded">
+                <!-- options will be populated dynamically -->
+            </select>
+            
+            <select id="teacher-select" name="teacher" class="uk-select uk-margin-top uk-width-1-1 uk-background-muted uk-border-rounded">
+                <!-- options will be populated dynamically -->
+            </select>
+            
             <input type="text" placeholder="Name" name="name" id="name"
                 class="uk-input uk-width-1-1 uk-margin-top uk-background-muted uk-border-rounded">
             <input type="text" placeholder="Description" name="description" id="description"
                 class="uk-input uk-width-1-1 uk-margin-top uk-background-muted uk-border-rounded">
-            <input id="datepicker" name="datepicker"
+            <input id="datepicker" name="due_date"
                 class="uk-input uk-width-1-1 uk-margin-top uk-background-muted uk-border-rounded" type="text"
                 placeholder="Due Date">
 
@@ -20,9 +30,8 @@
             <div id="chosen-file" class="uk-text-small uk-margin-top"></div>
 
             <div style="margin-bottom: 20px;"></div>
-            <button class="uk-button uk-width-1-1 uk-border-rounded" id="add-course-btn"
-                style="text-transform: capitalize;background-color: hsl(240 5.9% 10%);color:#eee;font-size:16px;"
-                onclick="enrollCourse()">Send</button>
+            <button class="uk-button uk-width-1-1 uk-border-rounded" id="add-course-btn" type="submit"
+                style="text-transform: capitalize;background-color: hsl(240 5.9% 10%);color:#eee;font-size:16px;">Send</button>
         </form>
     </div>
 </div>
@@ -49,33 +58,4 @@
         UIkit.modal(addCourseModal).show();
     }
 
-    function enrollCourse() {
-        const selectedCourse = courseSelect.value;
-
-        fetch('/api/students/enroll', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ course_id: selectedCourse, student_id: studentId })
-        })
-            .then(response => response.json())
-            .then(data => {
-                console.log(`Course added successfully!`);
-            })
-            .catch(error => console.error('Error adding course:', error));
-
-        UIkit.modal(addCourseModal).hide();
-    }
-
-    fetch('/api/courses')
-        .then(response => response.json())
-        .then(data => {
-            const courseSelect = document.getElementById('course-select');
-            const courseOptions = data.map(course => {
-                return `<option value="${course.id}">${course.title}</option>`;
-            });
-            courseSelect.innerHTML = courseOptions.join('');
-        })
-        .catch(error => console.error('Error fetching courses:', error));
 </script>

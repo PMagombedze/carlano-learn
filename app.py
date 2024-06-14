@@ -31,7 +31,7 @@ def create_assignment():
     file = request.files["file"]
 
     # Get the assignment title from the request form
-    title = request.form["title"]
+    title = request.form["name"]
     course = request.form["course"]
     teacher = request.form["teacher"]
     description = request.form["description"]

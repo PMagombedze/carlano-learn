@@ -43,7 +43,9 @@ class Course(db.Model):
     __tablename__ = "courses"
     id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     title = db.Column(db.Text, nullable=False)
-    teacher_name = db.Column(db.Text, nullable=False)
+    teacher_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey("users.id"))
+    teacher = db.relationship("User", backref="courses_taught")
+
 
     # Many-to-Many relationship with User model (students)
     students = db.relationship(
@@ -56,10 +58,14 @@ class Course(db.Model):
     # One-to-Many relationship with Submissions model
     submissions = db.relationship("Submissions", backref="course", lazy=True)
 
-    def __init__(self, title: str, teacher_name: str, description: str = ""):
+    def __init__(self, title: str, teacher: User, description: str = ""):
         self.title = title
-        self.teacher_name = teacher_name
+        self.teacher = teacher
         self.description = description
+
+    @property
+    def teacher_name(self):
+        return f"{self.teacher.name} {self.teacher.surname}"
 
 
 class CourseEnrollment(db.Model):

@@ -139,13 +139,23 @@ class Signup(Resource):
                 "error": "Password should contain at least 8 characters, an uppercase and a lowercase character"
             }, 400
 
-        new_user = User(email=email, password=password, name=name, surname=surname, is_admin=is_admin)
+        new_user = User(
+            email=email,
+            password=password,
+            name=name,
+            surname=surname,
+            is_admin=is_admin,
+        )
         db.session.add(new_user)
         db.session.commit()
 
         # Generate a JWT token for the new user
         access_token = create_access_token(identity=email)
-        return {"message": "User created successfully", "token": access_token, "is_admin": is_admin}, 201
+        return {
+            "message": "User created successfully",
+            "token": access_token,
+            "is_admin": is_admin,
+        }, 201
 
 
 class Users(Resource):
@@ -197,7 +207,7 @@ class Login(Resource):
                 "message": "Logged in successfully",
                 "token": access_token,
                 "id": str(user.id),
-                "is_admin":user.is_admin
+                "is_admin": user.is_admin,
             }, 200
         else:
             return {"message": "Invalid password"}, 200
@@ -242,9 +252,6 @@ class CourseResource(Resource):
     def post(self):
         parser = reqparse.RequestParser()
         parser.add_argument("title", required=True, help="Title cannot be blank!")
-        parser.add_argument(
-            "teacher_name", required=True, help="Teacher name cannot be blank!"
-        )
         data = parser.parse_args()
 
         current_user = get_jwt_identity()
@@ -256,8 +263,7 @@ class CourseResource(Resource):
             return {"error": "Course with this title already exists"}, 400
 
         new_course = Course(
-            title=data["title"],
-            teacher_name=data["teacher_name"],
+            title=data["title"], teacher=user  # Set the teacher to the current user
         )
         db.session.add(new_course)
         db.session.commit()
@@ -271,7 +277,7 @@ class CourseResource(Resource):
                 {
                     "id": str(course.id),
                     "title": course.title,
-                    "teacher_name": course.teacher_name,
+                    "teacher_name": course.teacher_name,  # Use the computed property
                 }
                 for course in courses
             ]
@@ -421,7 +427,6 @@ class ForgotPassword(Resource):
         db.session.commit()
 
         return {"message": "Password updated successfully"}, 200
-
 
 
 api.add_resource(ForgotPassword, "/api/forgot_password")
