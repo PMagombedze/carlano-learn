@@ -1,0 +1,47 @@
+<!-- Add a modal container to the HTML body -->
+<div id="add-course-modal_" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-border-rounded">
+        <h4 class="uk-modal-title uk-text-bold" style="font-size: 24px;">Add Course</h4>
+        <form>
+            <input id="post-course" placeholder="Title" name="post-course"
+                class="uk-input uk-width-1-1 uk-background-muted uk-border-rounded">
+            <div style="margin-bottom: 20px;"></div>
+            <button class="uk-button uk-width-1-1 uk-border-rounded" id="add-course-btn_"
+                style="text-transform: capitalize;background-color: hsl(240 5.9% 10%);color:#eee;"
+                onclick="addCourse()">Add</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    const addCourseModal_ = document.getElementById('add-course-modal_');
+    const courseSelect_ = document.getElementById('course-select');
+
+    function showAddCourse() {
+        UIkit.modal(addCourseModal_).show();
+    }
+
+    function addCourse() {
+        const title = document.getElementById('post-course').value;
+        const token = Cookies.get("token_");
+
+        axios({
+            method: 'post',
+            url: '/api/courses',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            data: { title }
+        })
+            .then(response => {
+                console.log('Course added:', title);
+                document.getElementById('post-course').value = '';
+                UIkit.modal(addCourseModal_).hide();
+            })
+            .catch(error => {
+                console.error('Error adding course:', error.response.status);
+            });
+    }
+
+</script>
