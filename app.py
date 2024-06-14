@@ -1,12 +1,13 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, send_from_directory, url_for
 from auth import auth
 from views import views
 import os
 from flask_migrate import Migrate
 from config import Config
-from models import db, User, Course, Submission
+from models import *
 from datetime import datetime
 from dotenv import load_dotenv
+from werkzeug.utils import secure_filename
 
 from api import api, jwt, mail
 
@@ -20,42 +21,48 @@ app.register_blueprint(auth, url_prefix="/")
 app.register_blueprint(views, url_prefix="/")
 
 
-@app.route("/api/courses/submissions/<string:course_id>", methods=["POST"])
-def create_submission(course_id):
-    course = Course.query.get(course_id)
-    if course is None:
-        return jsonify({"error": "Course not found"}), 404
+@app.route("/api/students/<string:student_id>/assignments", methods=["POST"])
+def submit_assignment(student_id):
+    return jsonify({"message": "Assignment submitted successfully"}), 201
 
-    user_id = request.form["user_id"]
-    assignment = request.form["assignment"]
-    due_date = request.form["due_date"]
+
+@app.route("/api/students/assignments", methods=["POST"])
+def create_assignment():
     file = request.files["file"]
 
-    user = User.query.get(user_id)
-    if user is None:
-        return jsonify({"error": "User not found"}), 404
+    # Get the assignment title from the request form
+    title = request.form["title"]
+    course = request.form["course"]
+    teacher = request.form["teacher"]
 
-    submission_date = datetime.now()
-    due_date = datetime.strptime(due_date, "%Y-%m-%dT%H:%M:%S.%fZ")
+    # Check if the file is present
+    if not file:
+        return jsonify({"message": "No file provided"}), 400
 
-    # Create the directory for the user if it doesn't exist
-    user_dir = f"uploads/{user.name} {user.surname}"
-    if not os.path.exists(user_dir):
-        os.makedirs(user_dir)
+    # Securely save the file to the uploads folder
+    filename = secure_filename(file.filename)
+    file.save(os.path.join(app.config["UPLOADS_FOLDER"], filename))
 
-    # Save the file with the assignment name as the filename
-    filename = f"{assignment}.pdf"
-    file_path = os.path.join(user_dir, filename)
-    file.save(file_path)
-
-    submission = Submission(
-        course, user, assignment, submission_date, due_date, file_path
+    # Create a new assignment instance
+    assignment = Assignments(
+        name=title,
+        course=course,
+        teacher=teacher,
+        description="Uploaded assignment",
+        due_date=datetime.now(),
+        assignment_file=filename,
     )
-    db.session.add(submission)
+    db.session.add(assignment)
     db.session.commit()
+    file_url = url_for("uploaded_file", filename=filename)
+    return (
+        jsonify({"message": "Assignment created successfully", "file_url": file_url}),
+        201,
+    )
 
-    return jsonify({"message": "Assignment submitted successfully!"}), 201
-
+@app.route("/uploads/<filename>")
+def uploaded_file(filename):
+    return send_from_directory(app.config["UPLOADS_FOLDER"], filename)
 
 @app.errorhandler(500)
 def internal_server_error(e):

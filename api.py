@@ -1,8 +1,9 @@
 from flask_restful import Resource, Api, reqparse
 from flask import request, jsonify
-from models import User, db, Course, Submission, CourseEnrollment
+from models import User, db, Course, Submissions, CourseEnrollment, Assignments
 from dotenv import load_dotenv
 import pydantic, werkzeug
+from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
 from flask_mail import Mail, Message
 import os
@@ -14,7 +15,6 @@ from flask_jwt_extended import (
     jwt_required,
     create_access_token,
     get_jwt_identity,
-    decode_token,
 )
 
 api = Api()
@@ -205,14 +205,14 @@ class ProtectedResource(Resource):
         return {"message": "Token is valid"}
 
 
-class SubmissionResource(Resource):
+class SubmissionsResource(Resource):
     def post(self, course_id):
         parser = reqparse.RequestParser()
         parser.add_argument(
             "file", type=werkzeug.datastructures.FileStorage, location="files"
         )
         parser.add_argument(
-            "submission_date", required=True, help="Submission date cannot be blank!"
+            "submissions_date", required=True, help="Submissions date cannot be blank!"
         )
         parser.add_argument("due_date", required=True, help="Due date cannot be blank!")
         data = parser.parse_args()
@@ -221,16 +221,16 @@ class SubmissionResource(Resource):
         if not course:
             return {"error": "Course not found"}, 404
 
-        submission = Submission(
+        submissions = Submissions(
             course_id=course_id,
             assignment=data["file"].read(),  # Read the uploaded PDF file
-            submission_date=datetime.strptime(data["submission_date"], "%Y-%m-%d"),
+            submissions_date=datetime.strptime(data["submissions_date"], "%Y-%m-%d"),
             due_date=datetime.strptime(data["due_date"], "%Y-%m-%d"),
         )
-        db.session.add(submission)
+        db.session.add(submissions)
         db.session.commit()
 
-        return {"message": "Submission created successfully"}, 201
+        return {"message": "Submissions created successfully"}, 201
 
 
 class CourseResource(Resource):
@@ -419,6 +419,7 @@ class ForgotPassword(Resource):
         return {"message": "Password updated successfully"}, 200
 
 
+
 api.add_resource(ForgotPassword, "/api/forgot_password")
 api.add_resource(
     UnenrollCourse, "/api/students/<string:student_id>/<string:course_id>/courses"
@@ -426,7 +427,7 @@ api.add_resource(
 api.add_resource(EnrollStudent, "/api/students/enroll")
 api.add_resource(StudentCourses, "/api/students/<string:student_id>/courses")
 api.add_resource(CourseResource, "/api/courses", "/api/courses/<string:course_id>")
-api.add_resource(SubmissionResource, "/api/courses/<string:course_id>/submissions")
+api.add_resource(SubmissionsResource, "/api/courses/<string:course_id>/submissions")
 api.add_resource(ProtectedResource, "/api/protected")
 api.add_resource(Signup, "/api/signup")
 api.add_resource(Users, "/api/signup/users", "/api/signup/users/<string:id>")
