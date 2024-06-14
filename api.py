@@ -430,7 +430,21 @@ class ForgotPassword(Resource):
 
         return {"message": "Password updated successfully"}, 200
 
+class AssignmentListAPI(Resource):
+    def get(self):
+        assignments = Assignments.query.all()
+        return jsonify([
+            {
+                "id": str(assignment.id),
+                "course_id": str(assignment.course_id),
+                "name": assignment.name,
+                "description": assignment.description,
+                "due_date": assignment.due_date.isoformat(),
+                "assignment_file": assignment.assignment_file
+            } for assignment in assignments
+        ])
 
+api.add_resource(AssignmentListAPI, '/api/assignments')
 api.add_resource(ForgotPassword, "/api/forgot_password")
 api.add_resource(
     UnenrollCourse, "/api/students/<string:student_id>/<string:course_id>/courses"

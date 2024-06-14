@@ -61,9 +61,7 @@
         .then(data => {
             const teacherIds = data.filter(teacher => teacher.teacher_name === fullName).map(teacher => teacher.id);
             globalTeacherId = user_id; // Assign user_id to globalTeacherId
-            globalCourseId = teacherIds[0]; // Assign the first course ID to globalCourseId
-            console.log(globalTeacherId); // Output: user_id
-            console.log(globalCourseId); // Output: "36532f95-2465-4702-b2d1-df7635389822"
+            globalCourseId = teacherIds[0];
 
             // Update the select elements with the global IDs
             const courseIdSelect = document.getElementById('course-id');
