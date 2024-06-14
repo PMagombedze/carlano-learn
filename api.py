@@ -208,6 +208,8 @@ class Login(Resource):
                 "token": access_token,
                 "id": str(user.id),
                 "is_admin": user.is_admin,
+                "surname": user.surname,
+                "name": user.name,
             }, 200
         else:
             return {"message": "Invalid password"}, 200

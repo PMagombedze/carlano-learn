@@ -8,6 +8,7 @@ from models import *
 from datetime import datetime
 from dotenv import load_dotenv
 from werkzeug.utils import secure_filename
+from dateutil import parser
 
 from api import api, jwt, mail
 
@@ -32,12 +33,13 @@ def create_assignment():
 
     # Get the assignment title from the request form
     title = request.form["name"]
-    course = request.form["course"]
-    teacher = request.form["teacher"]
+    course = Course.query.filter_by(id=request.form["course"]).first()
+    teacher = User.query.filter_by(id=request.form["teacher"]).first()
     description = request.form["description"]
-    due_date = request.form["due_date"]
+    due_date_str = request.form["due_date"]
 
 
+    due_date = datetime.strptime(due_date_str, "%d/%m/%Y")  # adjust the format accordingly
     # Check if the file is present
     if not file:
         return jsonify({"message": "No file provided"}), 400
@@ -46,6 +48,7 @@ def create_assignment():
     filename = secure_filename(file.filename)
     file_path = os.path.join(app.config["UPLOADS_FOLDER"], filename)
     file.save(file_path)
+    file_url = url_for('uploaded_file', filename=filename)
 
     # Create a new assignment instance
     assignment = Assignments(
@@ -54,14 +57,12 @@ def create_assignment():
         teacher=teacher,
         description=description,
         due_date=due_date,
-        assignment_file=file_path,
+        assignment_file=file_url,
     )
     db.session.add(assignment)
     db.session.commit()
-    return (
-        jsonify({"message": "Assignment created successfully"}),
-        201,
-    )
+
+    return jsonify({"message": "Assignment created successfully"}), 201
 
 @app.route("/uploads/<filename>")
 def uploaded_file(filename):

@@ -97,9 +97,13 @@
                 if (response.data.token && response.data.is_admin === true) {
                     const token = response.data.token
                     const userId = response.data.id
+                    const name = response.data.name
+                    const surname = response.data.surname
                     Cookies.set('token_', token, { expires: 1 })
                     Cookies.set('email_', email, { expires: 1 })
                     Cookies.set('userId_', userId, { expires: 1 })
+                    Cookies.set('name', name, { expires: 1 })
+                    Cookies.set('surname', surname, { expires: 1 })
                     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
                     window.location.href = '/teacher/dashboard'
                 } else {

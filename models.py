@@ -92,7 +92,6 @@ class Assignments(db.Model):
         self.description = description
         self.due_date = due_date
         self.assignment_file = assignment_file
-        return None
 
 
 class Submissions(db.Model):
