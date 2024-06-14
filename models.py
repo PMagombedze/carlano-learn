@@ -24,11 +24,12 @@ class User(db.Model):
     # One-to-Many relationship with Submissions model
     submissions = db.relationship("Submissions", backref="student", lazy=True)
 
-    def __init__(self, email: EmailStr, password, name, surname):
+    def __init__(self, email: EmailStr, password, name, surname, is_admin):
         self.email = email
         self.password = self._hash_password(password)
         self.name = name
         self.surname = surname
+        self.is_admin = is_admin
 
     def _hash_password(self, password):
         hashed_password = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
@@ -84,14 +85,7 @@ class Assignments(db.Model):
         self.name = name
         self.description = description
         self.due_date = due_date
-        self.assignment_file = self._save_assignment_file(assignment_file)
-
-    def _save_assignment_file(self, file):
-        if file:
-            filename = secure_filename(file.filename)
-            file_path = os.path.join('uploads', filename)
-            file.save(file_path)
-            return file_path
+        self.assignment_file = assignment_file
         return None
 
 

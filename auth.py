@@ -10,6 +10,16 @@ def login():
     return render_template("auth/login.html")
 
 
+@auth.route("/auth/teacher/login", strict_slashes=False)
+def teacher_login():
+    return render_template("auth/teacher_login.html")
+
+
+@auth.route("/auth/teacher/signup", strict_slashes=False)
+def teacher_signup():
+    return render_template("auth/teacher_signup.html")
+
+
 @auth.route("/auth/create_account", strict_slashes=False)
 def register():
     return render_template("auth/signup.html")

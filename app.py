@@ -34,6 +34,9 @@ def create_assignment():
     title = request.form["title"]
     course = request.form["course"]
     teacher = request.form["teacher"]
+    description = request.form["description"]
+    due_date = request.form["due_date"]
+
 
     # Check if the file is present
     if not file:
@@ -41,22 +44,22 @@ def create_assignment():
 
     # Securely save the file to the uploads folder
     filename = secure_filename(file.filename)
-    file.save(os.path.join(app.config["UPLOADS_FOLDER"], filename))
+    file_path = os.path.join(app.config["UPLOADS_FOLDER"], filename)
+    file.save(file_path)
 
     # Create a new assignment instance
     assignment = Assignments(
         name=title,
         course=course,
         teacher=teacher,
-        description="Uploaded assignment",
-        due_date=datetime.now(),
-        assignment_file=filename,
+        description=description,
+        due_date=due_date,
+        assignment_file=file_path,
     )
     db.session.add(assignment)
     db.session.commit()
-    file_url = url_for("uploaded_file", filename=filename)
     return (
-        jsonify({"message": "Assignment created successfully", "file_url": file_url}),
+        jsonify({"message": "Assignment created successfully"}),
         201,
     )
 

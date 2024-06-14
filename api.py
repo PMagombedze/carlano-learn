@@ -109,6 +109,7 @@ class UserCreate(BaseModel):
     password: str
     name: str
     surname: str
+    is_admin: bool
 
 
 class Signup(Resource):
@@ -120,6 +121,8 @@ class Signup(Resource):
             password = user_data.password
             surname = user_data.surname
             name = user_data.name
+            is_admin = user_data.is_admin
+
         except pydantic.ValidationError as e:
             error_msg = "Invalid email address"
             if e.errors():
@@ -136,13 +139,13 @@ class Signup(Resource):
                 "error": "Password should contain at least 8 characters, an uppercase and a lowercase character"
             }, 400
 
-        new_user = User(email=email, password=password, name=name, surname=surname)
+        new_user = User(email=email, password=password, name=name, surname=surname, is_admin=is_admin)
         db.session.add(new_user)
         db.session.commit()
 
         # Generate a JWT token for the new user
         access_token = create_access_token(identity=email)
-        return {"message": "User created successfully", "token": access_token}, 201
+        return {"message": "User created successfully", "token": access_token, "is_admin": is_admin}, 201
 
 
 class Users(Resource):
@@ -194,6 +197,7 @@ class Login(Resource):
                 "message": "Logged in successfully",
                 "token": access_token,
                 "id": str(user.id),
+                "is_admin":user.is_admin
             }, 200
         else:
             return {"message": "Invalid password"}, 200

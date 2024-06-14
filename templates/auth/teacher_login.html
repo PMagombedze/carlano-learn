@@ -19,7 +19,7 @@
                 <path
                     d="M4.176 9.032a.5.5 0 0 0-.656.327l-.5 1.7a.5.5 0 0 0 .294.605l4.5 1.8a.5.5 0 0 0 .372 0l4.5-1.8a.5.5 0 0 0 .294-.605l-.5-1.7a.5.5 0 0 0-.656-.327L8 10.466z" />
             </svg>&nbsp;Carlano</h1>
-        <h2 class="uk-margin-top" style="font-size: 17px;font-weight: 500;">Student Login</h2>
+        <h2 class="uk-margin-top" style="font-size: 17px;font-weight: 500;">Log into your account</h2>
         <div class="uk-margin-top">
             <div class="uk-inline uk-flex uk-flex-center">
                 <span class="uk-form-icon" uk-icon="icon: mail"></span>
@@ -54,10 +54,9 @@
                 }, 1000);
             });
         </script>
-        <h3 class="uk-margin-top" style="font-size: 14px;">Don't have an account? <a href="/auth/create_account"
+        <h3 class="uk-margin-top" style="font-size: 14px;">Don't have an account? <a href="/auth/teacher/signup"
                 style="font-weight: 500;">Register here</a></h3>
-        <h3 class="uk-margin-top" style="font-size: 14px;"><a href="/auth/teacher/login"
-                style="font-weight: 500;text-decoration: underline;">Teacher Login</a></h3>
+
     </div>
 </form>
 
@@ -95,14 +94,14 @@
             }
         })
             .then(response => {
-                if (response.data.token && response.data.is_admin === false) {
+                if (response.data.token && response.data.is_admin === true) {
                     const token = response.data.token
                     const userId = response.data.id
-                    Cookies.set('token', token, { expires: 1 })
-                    Cookies.set('email', email, { expires: 1 })
-                    Cookies.set('userId', userId, { expires: 1 })
+                    Cookies.set('token_', token, { expires: 1 })
+                    Cookies.set('email_', email, { expires: 1 })
+                    Cookies.set('userId_', userId, { expires: 1 })
                     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
-                    window.location.href = '/dashboard'
+                    window.location.href = '/teacher/dashboard'
                 } else {
                     errorDiv.innerText = 'Invalid email or password'
                     setTimeout(() => {
@@ -123,8 +122,8 @@
     axios.defaults.headers.common['Pragma'] = 'no-cache';
     axios.defaults.headers.common['Expires'] = '0';
 
-    if (window.location.pathname === '/dashboard') {
-        const token = Cookies.get('token')
+    if (window.location.pathname === '/teacher/dashboard') {
+        const token = Cookies.get('token_')
         if (token) {
             axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
             axios.get('/api/protected', {
@@ -135,13 +134,13 @@
                 .then(response => {
                     if (response.data.message === 'Token is valid') {
                     } else {
-                        Cookies.remove('token')
+                        Cookies.remove('token_')
                         window.location.href = '/'
                     }
                 })
                 .catch(error => {
                     console.error(error)
-                    Cookies.remove('token')
+                    Cookies.remove('token_')
                     window.location.href = '/'
                 })
         } else {
@@ -150,19 +149,16 @@
     }
 
     if (window.location.pathname === '/') {
-        const token = Cookies.get('token')
+        const token = Cookies.get('token_')
         if (token) {
-            window.location.href = '/dashboard';
+            window.location.href = '/teacher/dashboard';
         }
     }
 
     window.history.forward();
     window.onhashchange = function () {
-        if (window.location.pathname === '/dashboard' && !Cookies.get('token')) {
+        if (window.location.pathname === '/teacher/dashboard' && !Cookies.get('token_')) {
             window.location.href = '/';
         }
     }
-
-
-
 </script>
