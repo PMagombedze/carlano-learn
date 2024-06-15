@@ -9,6 +9,12 @@
     const urlParams = new URLSearchParams(window.location.search);
     const nocache = urlParams.get('nocache');
 
+    if (window.location.pathname.startsWith('/dashboard/')) {
+        if (!isLoggedIn()) {
+            window.location.href = '/';
+        }
+    }
+
     if (window.location.pathname === '/dashboard') {
         if (!isLoggedIn()) {
             window.location.href = '/'
@@ -160,6 +166,21 @@
 </body>
 
 <script>
+    const studentId = Cookies.get('userId');
+    fetch(`/api/students/${studentId}/courses`)
+        .then(response => response.json())
+        .then(data => {
+            const sidebarList = document.querySelector('.sidebar ul');
+            data.courses.forEach(course => {
+                const listItemHTML = `
+                    <li><a href="/dashboard/${course.id}">${course.title}</a></li>
+                `;
+                sidebarList.innerHTML += listItemHTML;
+            });
+        })
+        .catch(error => console.error('Error fetching courses:', error));
+
+
     fetch('/api/assignments')
         .then(response => response.json())
         .then(data => {
