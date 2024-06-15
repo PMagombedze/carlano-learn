@@ -11,3 +11,8 @@ def dashboard():
 @views.route("/teacher/dashboard")
 def teacher():
     return render_template("teacher.html")
+
+
+@views.route("/dashboard/<topic>")
+def dashboard_topic(topic):
+    return render_template("submissions.html", topic=topic)
