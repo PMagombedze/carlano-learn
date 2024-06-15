@@ -143,9 +143,10 @@
                             <path
                                 d="M4.176 9.032a.5.5 0 0 0-.656.327l-.5 1.7a.5.5 0 0 0 .294.605l4.5 1.8a.5.5 0 0 0 .372 0l4.5-1.8a.5.5 0 0 0 .294-.605l-.5-1.7a.5.5 0 0 0-.656-.327L8 10.466z" />
                         </svg>&nbsp;Carlano</h1>
-                    <h1 id="add-course" onclick="showAddCourseModal()"><span uk-icon="icon: plus-circle"></span>Add
-                        Course</h1>
+                    <h1 id="add-course" onclick="showAddCourseModal()"><span uk-icon="icon: plus-circle"></span>Enroll
+                    </h1>
                     {% include 'modal.html' %}
+
                 </li>
                 <!---course-links-->
             </ul>
@@ -163,6 +164,49 @@
             </div>
         </div>
     </div>
+    <div id="submissions-modal" uk-modal>
+        <div class="uk-modal-dialog uk-modal-body uk-border-rounded">
+            <h4 class="uk-modal-title uk-text-bold" style="font-size: 24px;">Add Assignment</h4>
+            <form class="uk-form" action="/api/students/assignments" method="post" enctype="multipart/form-data">
+
+
+                <select id="course-id" name="course"
+                    class="uk-select uk-width-1-1 uk-background-muted uk-border-rounded">
+                    <!-- options will be populated dynamically -->
+                </select>
+
+                <select id="student-id" name="student"
+                    class="uk-select uk-margin-top uk-width-1-1 uk-background-muted uk-border-rounded">
+                    <!-- options will be populated dynamically -->
+                </select>
+
+                <select id="assignment-id" name="assignment"
+                    class="uk-margin-top uk-select uk-width-1-1 uk-background-muted uk-border-rounded">
+                    <!-- options will be populated dynamically -->
+                </select>
+
+                <input type="text" placeholder="Assignment Text" name="ass-text" id="ass-text"
+                    class="uk-input uk-width-1-1 uk-margin-top uk-background-muted uk-border-rounded">
+
+                <input type="text" placeholder="Description" name="desc" id="desc"
+                    class="uk-input uk-width-1-1 uk-margin-top uk-background-muted uk-border-rounded">
+
+                <input type="file" name="file" id="file"
+                    class="uk-input uk-width-1-1 uk-margin-top uk-background-muted uk-border-rounded"
+                    style="display: none;">
+                <label for="file"
+                    class="uk-input uk-width-1-1 uk-margin-top uk-background-muted uk-text-muted uk-border-rounded"
+                    style="cursor: hand;" id="file-label">Browse Assignment ...</label>
+                <div id="chosen-file" class="uk-text-small uk-margin-top"></div>
+
+                <div style="margin-bottom: 20px;"></div>
+                <button class="uk-button uk-width-1-1 uk-border-rounded" id="submissions-btn" type="submit"
+                    style="text-transform: capitalize;background-color: hsl(240 5.9% 10%);color:#eee;font-size:16px;">Send</button>
+            </form>
+        </div>
+    </div>
+
+
 </body>
 
 <script>
@@ -191,19 +235,76 @@
                 const cardHTML = `
         <div class="card uk-background-muted uk-border-rounded">
           <h3>${assignment.name}</h3>
-          <p class="uk-text-small">${assignment.description}</p>
+          <p id="description" class="uk-text-small">${assignment.description}</p>
           <p class="uk-text-small">Due Date: ${assignment.due_date}</p>
           <a href="${assignment.assignment_file}" class="uk-text-small">Assignment File</a>
-          <p class="submit-button" style="font-weight:600;font-size:12px;cursor:hand;">Submit</p>
+          <p onclick="showSubmissions()" class="submit-button" style="font-weight:600;font-size:12px;cursor:hand;">Submit</p>
         </div>
       `;
                 const cardElement = document.createElement('div');
                 cardElement.innerHTML = cardHTML;
                 cardContainer.appendChild(cardElement.firstElementChild); // Append the card element, not the wrapper
+                const descriptionElement = document.querySelector('#description');
+                const assignmentDescription = descriptionElement.textContent.trim();
+
+                const matchedAssignment = assignments.find(assignment => assignment.description === assignmentDescription);
+
+                if (matchedAssignment) {
+                    Cookies.set('assignment_id', matchedAssignment.id, { expires: 1 });
+
+                    assignment_id = Cookies.get("assignment_id");
+
+                } else {
+                    console.log('No matching assignment found.');
+                }
+
+                const course_idf = window.location.pathname.split('/').pop();
+                const fileInput = document.getElementById('file');
+                const fileLabel = document.getElementById('file-label');
+                const chosenFileDiv = document.getElementById('chosen-file');
+                const name = Cookies.get("name");
+                const surname = Cookies.get("surname");
+                const fullName = name + ' ' + surname;
+                const student_id = Cookies.get("userId_");
+
+                const courseIdSelect = document.getElementById('course-id');
+                const courseIdOption = document.createElement('option');
+                courseIdOption.value = course_idf;
+                courseIdOption.text = course_idf;
+                courseIdSelect.appendChild(courseIdOption);
+
+                const studentIdSelect = document.getElementById('student-id');
+                const studentIdOption = document.createElement('option');
+                studentIdOption.value = studentId;
+                studentIdOption.text = studentId;
+                studentIdSelect.appendChild(studentIdOption);
+
+                const assIdSelect = document.getElementById('assignment-id');
+                const assIdOption = document.createElement('option');
+                assIdOption.value = assignment_id;
+                assIdOption.text = assignment_id;
+                assIdSelect.appendChild(assIdOption);
+
+                fileInput.addEventListener('change', () => {
+                    const chosenFile = fileInput.files[0].name;
+                    chosenFileDiv.textContent = chosenFile;
+                });
+
             });
         })
         .catch(error => console.error('Error fetching assignments:', error));
+
+
+
+
+
+    function showSubmissions() {
+        const addCourseModal_ = document.getElementById('submissions-modal');
+
+        UIkit.modal(addCourseModal_).show();
+    }
 </script>
+
 
 <script>
     function logout() {
