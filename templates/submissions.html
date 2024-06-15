@@ -167,28 +167,25 @@
     <div id="submissions-modal" uk-modal>
         <div class="uk-modal-dialog uk-modal-body uk-border-rounded">
             <h4 class="uk-modal-title uk-text-bold" style="font-size: 24px;">Add Assignment</h4>
-            <form class="uk-form" action="/api/students/assignments" method="post" enctype="multipart/form-data">
+            <form class="uk-form" action="/api/submit_assignment" method="post" enctype="multipart/form-data">
 
 
-                <select id="course-id" name="course"
+                <select id="course-id" name="course-id"
                     class="uk-select uk-width-1-1 uk-background-muted uk-border-rounded">
                     <!-- options will be populated dynamically -->
                 </select>
 
-                <select id="student-id" name="student"
+                <select id="student-id" name="student-id"
                     class="uk-select uk-margin-top uk-width-1-1 uk-background-muted uk-border-rounded">
                     <!-- options will be populated dynamically -->
                 </select>
 
-                <select id="assignment-id" name="assignment"
+                <select id="assignment-id" name="assignment-id"
                     class="uk-margin-top uk-select uk-width-1-1 uk-background-muted uk-border-rounded">
                     <!-- options will be populated dynamically -->
                 </select>
 
                 <input type="text" placeholder="Assignment Text" name="ass-text" id="ass-text"
-                    class="uk-input uk-width-1-1 uk-margin-top uk-background-muted uk-border-rounded">
-
-                <input type="text" placeholder="Description" name="desc" id="desc"
                     class="uk-input uk-width-1-1 uk-margin-top uk-background-muted uk-border-rounded">
 
                 <input type="file" name="file" id="file"

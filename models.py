@@ -125,15 +125,7 @@ class Submissions(db.Model):
         self.assignment = assignment
         self.assignment_text = assignment_text
         self.submission_date = datetime.utcnow()
-        self.submission_file = self._save_submission_file(submission_file)
-
-    def _save_submission_file(self, file):
-        if file:
-            filename = secure_filename(file.filename)
-            file_path = os.path.join("uploads", filename)
-            file.save(file_path)
-            return file_path
-        return None
+        self.submission_file = submission_file
 
     def to_dict(self):
         student = User.query.filter_by(id=self.student_id, is_admin=False).first()
