@@ -449,6 +449,7 @@ class AssignmentListAPI(Resource):
 
 
 class AllSubmissions(Resource):
+    #use jwt so that only teacher can view submissions
     def get(self):
         submissions = Submissions.query.all()
         return jsonify([submission.to_dict() for submission in submissions])

@@ -136,12 +136,18 @@ class Submissions(db.Model):
         return None
 
     def to_dict(self):
+        student = User.query.filter_by(id=self.student_id, is_admin=False).first()
+        if student:
+            student_name = f"{student.name} {student.surname}"
+        else:
+            student_name = "Unknown"
         return {
             "id": self.id,
             "course_id": self.course_id,
             "student_id": self.student_id,
+            "student_name": student_name,
             "assignment_id": self.assignment_id,
             "assignment_text": self.assignment_text,
             "submission_date": self.submission_date.isoformat(),
-            "submission_file": self.submission_file
+            "submission_file": self.submission_file,
         }
