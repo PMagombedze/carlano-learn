@@ -4,6 +4,7 @@ import uuid
 from pydantic import EmailStr
 from datetime import datetime
 import os
+import pytz
 from werkzeug.utils import secure_filename
 
 db = SQLAlchemy()
@@ -46,7 +47,6 @@ class Course(db.Model):
     teacher_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey("users.id"))
     teacher = db.relationship("User", backref="courses_taught")
 
-
     # Many-to-Many relationship with User model (students)
     students = db.relationship(
         "User", secondary="course_enrollments", backref="courses"
@@ -85,7 +85,15 @@ class Assignments(db.Model):
     due_date = db.Column(db.DateTime, nullable=False)
     assignment_file = db.Column(db.Text, nullable=True)
 
-    def __init__(self, course: Course, teacher: User, name: str, description: str, due_date: datetime, assignment_file: str = None):
+    def __init__(
+        self,
+        course: Course,
+        teacher: User,
+        name: str,
+        description: str,
+        due_date: datetime,
+        assignment_file: str = None,
+    ):
         self.course = course
         self.teacher = teacher
         self.name = name
@@ -101,10 +109,17 @@ class Submissions(db.Model):
     student_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey("users.id"))
     assignment_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey("assignments.id"))
     assignment_text = db.Column(db.Text, nullable=False)
-    submission_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    submission_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow())
     submission_file = db.Column(db.Text, nullable=True)
 
-    def __init__(self, course: Course, student: User, assignment: Assignments, assignment_text: str, submission_file: str = None):
+    def __init__(
+        self,
+        course: Course,
+        student: User,
+        assignment: Assignments,
+        assignment_text: str,
+        submission_file: str = None,
+    ):
         self.course = course
         self.student = student
         self.assignment = assignment
@@ -115,7 +130,18 @@ class Submissions(db.Model):
     def _save_submission_file(self, file):
         if file:
             filename = secure_filename(file.filename)
-            file_path = os.path.join('uploads', filename)
+            file_path = os.path.join("uploads", filename)
             file.save(file_path)
             return file_path
         return None
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "course_id": self.course_id,
+            "student_id": self.student_id,
+            "assignment_id": self.assignment_id,
+            "assignment_text": self.assignment_text,
+            "submission_date": self.submission_date.isoformat(),
+            "submission_file": self.submission_file
+        }

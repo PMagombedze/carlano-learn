@@ -1,6 +1,4 @@
-from flask import Blueprint, render_template, request, flash, redirect, url_for
-from models import db, User
-from flask_jwt_extended import get_jwt_identity, verify_jwt_in_request
+from flask import Blueprint, render_template
 
 auth = Blueprint("auth", __name__)
 

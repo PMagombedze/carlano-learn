@@ -3,7 +3,6 @@ from flask import request, jsonify
 from models import User, db, Course, Submissions, CourseEnrollment, Assignments
 from dotenv import load_dotenv
 import pydantic, werkzeug
-from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
 from flask_mail import Mail, Message
 import os
@@ -430,21 +429,33 @@ class ForgotPassword(Resource):
 
         return {"message": "Password updated successfully"}, 200
 
+
 class AssignmentListAPI(Resource):
     def get(self):
         assignments = Assignments.query.all()
-        return jsonify([
-            {
-                "id": str(assignment.id),
-                "course_id": str(assignment.course_id),
-                "name": assignment.name,
-                "description": assignment.description,
-                "due_date": assignment.due_date.isoformat(),
-                "assignment_file": assignment.assignment_file
-            } for assignment in assignments
-        ])
+        return jsonify(
+            [
+                {
+                    "id": str(assignment.id),
+                    "course_id": str(assignment.course_id),
+                    "name": assignment.name,
+                    "description": assignment.description,
+                    "due_date": assignment.due_date.isoformat(),
+                    "assignment_file": assignment.assignment_file,
+                }
+                for assignment in assignments
+            ]
+        )
 
-api.add_resource(AssignmentListAPI, '/api/assignments')
+
+class AllSubmissions(Resource):
+    def get(self):
+        submissions = Submissions.query.all()
+        return jsonify([submission.to_dict() for submission in submissions])
+
+
+api.add_resource(AllSubmissions, "/api/submissions")
+api.add_resource(AssignmentListAPI, "/api/assignments")
 api.add_resource(ForgotPassword, "/api/forgot_password")
 api.add_resource(
     UnenrollCourse, "/api/students/<string:student_id>/<string:course_id>/courses"

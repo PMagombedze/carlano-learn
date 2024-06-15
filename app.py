@@ -8,11 +8,12 @@ from models import *
 from datetime import datetime
 from dotenv import load_dotenv
 from werkzeug.utils import secure_filename
-from dateutil import parser
 
 from api import api, jwt, mail
 
 app = Flask(__name__)
+
+
 app.config.from_object(Config)
 migrate = Migrate(app, db)
 
@@ -38,8 +39,9 @@ def create_assignment():
     description = request.form["description"]
     due_date_str = request.form["due_date"]
 
-
-    due_date = datetime.strptime(due_date_str, "%d/%m/%Y")  # adjust the format accordingly
+    due_date = datetime.strptime(
+        due_date_str, "%d/%m/%Y"
+    )  # adjust the format accordingly
     # Check if the file is present
     if not file:
         return jsonify({"message": "No file provided"}), 400
@@ -48,7 +50,7 @@ def create_assignment():
     filename = secure_filename(file.filename)
     file_path = os.path.join(app.config["UPLOADS_FOLDER"], filename)
     file.save(file_path)
-    file_url = url_for('uploaded_file', filename=filename)
+    file_url = url_for("uploaded_file", filename=filename)
 
     # Create a new assignment instance
     assignment = Assignments(
@@ -64,9 +66,11 @@ def create_assignment():
 
     return jsonify({"message": "Assignment created successfully"}), 201
 
+
 @app.route("/uploads/<filename>")
 def uploaded_file(filename):
     return send_from_directory(app.config["UPLOADS_FOLDER"], filename)
+
 
 @app.errorhandler(500)
 def internal_server_error(e):
