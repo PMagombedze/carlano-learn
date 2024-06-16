@@ -179,7 +179,7 @@
                     <!-- options will be populated dynamically -->
                 </select>
 
-                <select id="assignment-id" name="assignment-id"
+                <select style="display: none;" id="assignment-id" name="assignment-id"
                     class="uk-margin-top uk-select uk-width-1-1 uk-background-muted uk-border-rounded">
                     <!-- options will be populated dynamically -->
                 </select>
@@ -187,12 +187,12 @@
                 <input type="hidden" id="assignment-id-hidden" name="assignment_id" value="">
                 <!-- ... other form fields ... -->
 
-                <input type="text" placeholder="Assignment Text" name="ass-text" id="ass-text"
-                    class="uk-input uk-width-1-1 uk-margin-top uk-background-muted uk-border-rounded">
-
-                <input type="file" name="file" id="file"
+                <textarea id="ass-text" name="ass-text" placeholder="Enter Your Answers Here"
                     class="uk-input uk-width-1-1 uk-margin-top uk-background-muted uk-border-rounded"
-                    style="display: none;">
+                    style="resize: none;height:300px;"></textarea>
+                <p class="uk-width-1-1 uk-margin-top" style="margin-bottom: 0;">OR</p>
+                <input type="file" name="file" id="file"
+                    class="uk-input uk-width-1-1 uk-background-muted uk-border-rounded" style="display: none;">
                 <label for="file"
                     class="uk-input uk-width-1-1 uk-margin-top uk-background-muted uk-text-muted uk-border-rounded"
                     style="cursor: hand;" id="file-label">Browse Assignment ...</label>
@@ -235,7 +235,7 @@
         <div class="card uk-background-muted uk-border-rounded">
           <h3>${assignment.name}</h3>
           <p id="description" class="uk-text-small">${assignment.description}</p>
-          <p class="uk-text-small">Due Date: ${assignment.due_date}</p>
+          <p class="uk-text-small">Due Date: ${assignment.due_date_str}</p>
           <a href="${assignment.assignment_file}" class="uk-text-small">Assignment File</a>
           <p onclick="showSubmissions('${assignment.id}')" class="submit-button" style="font-weight:600;font-size:12px;cursor:hand;">Submit</p>
         </div>

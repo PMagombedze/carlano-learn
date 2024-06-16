@@ -3,9 +3,7 @@ import bcrypt
 import uuid
 from pydantic import EmailStr
 from datetime import datetime
-import os
-import pytz
-from werkzeug.utils import secure_filename
+import arrow
 
 db = SQLAlchemy()
 
@@ -83,6 +81,7 @@ class Assignments(db.Model):
     name = db.Column(db.Text, nullable=False)
     description = db.Column(db.Text, nullable=False)
     due_date = db.Column(db.DateTime, nullable=False)
+    due_date_str = db.Column(db.String, nullable=False)
     assignment_file = db.Column(db.Text, nullable=True)
 
     def __init__(
@@ -99,10 +98,10 @@ class Assignments(db.Model):
         self.name = name
         self.description = description
         self.due_date = due_date
+        self.due_date_str = (
+            arrow.get(due_date).to("UTC+2").format("ddd D MMM YYYY h:mm A")
+        )
         self.assignment_file = assignment_file
-
-
-import arrow
 
 
 class Submissions(db.Model):
@@ -119,7 +118,7 @@ class Submissions(db.Model):
     submission_date_str = db.Column(
         db.String,
         nullable=False,
-        default=lambda: arrow.utcnow().to("US/Pacific").format("ddd D MMM YYYY h:mm A"),
+        default=lambda: arrow.utcnow().to("UTC+2").format("ddd D MMM YYYY h:mm A"),
     )
     submission_file = db.Column(db.Text, nullable=True)
 
@@ -154,4 +153,32 @@ class Submissions(db.Model):
             "assignment_text": self.assignment_text,
             "submission_date": self.submission_date.isoformat(),
             "submission_file": self.submission_file,
+        }
+
+
+class Marks(db.Model):
+    __tablename__ = "marks"
+    id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    submission_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey("submissions.id"))
+    submission = db.relationship("Submissions", backref="marks")
+    teacher_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey("users.id"))
+    teacher = db.relationship("User", backref="marks_given")
+    mark = db.Column(db.Integer, nullable=False)
+    feedback = db.Column(db.Text, nullable=True)
+    is_marked = db.Column(db.Boolean, default=True)
+
+    def __init__(self, submission_id, teacher_id, mark: int, feedback: str = None):
+        self.submission_id = submission_id
+        self.teacher_id = teacher_id
+        self.mark = mark
+        self.feedback = feedback
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "submission_id": self.submission_id,
+            "teacher_id": self.teacher_id,
+            "mark": self.mark,
+            "feedback": self.feedback,
+            "is_marked": self.is_marked,
         }

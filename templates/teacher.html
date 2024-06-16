@@ -161,6 +161,25 @@
             </div>
         </div>
     </div>
+    <!-- Add a modal container to the HTML body -->
+    <div id="mark-modal" uk-modal>
+        <div class="uk-modal-dialog uk-modal-body uk-border-rounded">
+            <h4 class="uk-modal-title uk-text-bold" style="font-size: 24px;">Add Assignment</h4>
+            <form class="uk-form" id="send-mark">
+
+                <input type="text" placeholder="Mark" name="mark" id="mark"
+                    class="uk-input uk-width-1-1 uk-margin-top uk-background-muted uk-border-rounded">
+                <input type="text" placeholder="Feedback" name="feedback" id="feedback"
+                    class="uk-input uk-width-1-1 uk-margin-top uk-background-muted uk-border-rounded">
+                <!--is_marked = true-->
+
+                <div style="margin-bottom: 20px;"></div>
+                <button class="uk-button uk-width-1-1 uk-border-rounded" id="mark-btn" type="submit"
+                    style="text-transform: capitalize;background-color: hsl(240 5.9% 10%);color:#eee;font-size:16px;">Submit
+                    mark</button>
+            </form>
+        </div>
+    </div>
 </body>
 
 <script>
@@ -177,8 +196,7 @@
     fetch(`/api/courses?teacher_name=${fullName_}`)
         .then(response => response.json())
         .then(data => {
-            courseId = data[0].id; // Store the id in course_id
-            console.log(`Course ID: ${courseId}`);
+            courseId = data[0].id;
             // Fetch submissions for this course
             fetch(`/api/submissions?course_id=${courseId}`)
                 .then(response => response.json())
@@ -188,9 +206,11 @@
                         const cardHTML = `
                 <div class="card uk-background-muted uk-border-rounded">
                   <h3>${submission.student_name}</h3>
-                  <p class="uk-text-small">Submitted at: ${submission.submission_date}</p>
+                  <p class="uk-text-small">Submitted at: ${submission.submission_date_str}</p>
                   <p class="uk-text-small">${submission.assignment_text}</p>
+                  <p id="my-id" style="display:none;" class="uk-text-small">${submission.id}</p>
                   <a href="${submission.submission_file}" class="uk-text-small">Assignment file</a>
+                  <p class="uk-text-small uk-text-bold" style="font-weight:600;font-size:12px;cursor:hand;" onclick="showMarkModal('${submission.id}')">Mark</p>
                 </div>
               `;
                         const cardElement = document.createElement('div');
@@ -201,6 +221,41 @@
                 .catch(error => console.error('Error fetching submissions:', error));
         })
         .catch(error => console.error('Error fetching course:', error));
+</script>
+
+<script>
+
+    const markModal = document.getElementById('mark-modal');
+
+    function showMarkModal(submissionId) {
+        UIkit.modal(markModal).show();
+        markForm.submissionId = submissionId;
+    }
+
+    const markForm = document.getElementById('send-mark');
+
+    markForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const markInput = document.getElementById('mark');
+        const feedbackInput = document.getElementById('feedback');
+        const submissionId = markForm.submissionId;
+        const markData = {
+            teacher_id: studentId,
+            submission_id: submissionId,
+            feedback: feedbackInput.value,
+            mark: Number(markInput.value)
+        };
+
+        console.log('JSON Payload:', markData);
+
+        axios.post('/api/marks', markData)
+            .then(response => {
+                UIkit.modal(markModal).hide();
+            })
+            .catch(error => console.error('Error submitting mark:', error));
+    });
+
 </script>
 
 <script>

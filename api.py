@@ -1,6 +1,6 @@
 from flask_restful import Resource, Api, reqparse
 from flask import request, jsonify
-from models import User, db, Course, Submissions, CourseEnrollment, Assignments
+from models import User, db, Course, Submissions, CourseEnrollment, Assignments, Marks
 from dotenv import load_dotenv
 import pydantic, werkzeug
 from datetime import datetime, timedelta
@@ -441,6 +441,7 @@ class AssignmentListAPI(Resource):
                     "name": assignment.name,
                     "description": assignment.description,
                     "due_date": assignment.due_date.isoformat(),
+                    "due_date_str": assignment.due_date_str,
                     "assignment_file": assignment.assignment_file,
                 }
                 for assignment in assignments
@@ -449,12 +450,39 @@ class AssignmentListAPI(Resource):
 
 
 class AllSubmissions(Resource):
-    #use jwt so that only teacher can view submissions
+    # use jwt so that only teacher can view submissions
     def get(self):
         submissions = Submissions.query.all()
         return jsonify([submission.to_dict() for submission in submissions])
 
 
+class MarksResource(Resource):
+    def post(self):
+        data = request.get_json()
+        submission_id = data.get("submission_id")
+        teacher_id = data.get("teacher_id")
+        mark = data.get("mark")
+        feedback = data.get("feedback")
+
+        if not all([submission_id, teacher_id, mark]):
+            return {"error": "Missing required fields"}, 400
+
+        mark = Marks(
+            submission_id=submission_id,
+            teacher_id=teacher_id,
+            mark=mark,
+            feedback=feedback,
+        )
+        db.session.add(mark)
+        db.session.commit()
+        return {"message": "Mark created successfully"}, 201
+
+    def get(self):
+        marks = Marks.query.all()
+        return jsonify([mark.to_dict() for mark in marks])
+
+
+api.add_resource(MarksResource, "/api/marks")
 api.add_resource(AllSubmissions, "/api/submissions")
 api.add_resource(AssignmentListAPI, "/api/assignments")
 api.add_resource(ForgotPassword, "/api/forgot_password")
