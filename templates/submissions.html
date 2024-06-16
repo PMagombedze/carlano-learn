@@ -292,6 +292,7 @@
                     chosenFileDiv.textContent = chosenFile;
                 });
 
+
                 fetch('/api/submissions')
                     .then(response => response.json())
                     .then(data => {
@@ -311,8 +312,17 @@
                                             console.log('mark:', mark);
                                             const scoreElement = card.querySelector(`#score-${assignmentId}`);
                                             if (mark && mark.is_marked) {
-                                                scoreElement.textContent = `Score: ${mark.mark}`;
+                                                const score = mark.mark;
+                                                if (score < 50) {
+                                                    scoreElement.style.color = '#cc0202';
+                                                    scoreElement.style.fontWeight = '600';
+                                                } else {
+                                                    scoreElement.style.color = '#00A86B';
+                                                    scoreElement.style.fontWeight = '600';
+                                                }
+                                                scoreElement.textContent = `Score: ${score}`;
                                             } else {
+                                                scoreElement.style.color = 'gray';
                                                 scoreElement.textContent = 'Not yet marked';
                                             }
                                         })
@@ -320,6 +330,7 @@
                                 });
                             } else {
                                 const scoreElement = card.querySelector(`#score-${assignmentId}`);
+                                scoreElement.style.color = 'gray';
                                 scoreElement.textContent = 'Not yet marked';
                             }
                         });
