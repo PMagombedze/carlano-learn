@@ -102,14 +102,25 @@ class Assignments(db.Model):
         self.assignment_file = assignment_file
 
 
+import arrow
+
+
 class Submissions(db.Model):
     __tablename__ = "submissions"
     id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     course_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey("courses.id"))
     student_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey("users.id"))
-    assignment_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey("assignments.id"))
+    assignment_id = db.Column(
+        db.UUID(as_uuid=True), db.ForeignKey("assignments.id"), nullable=False
+    )
+    assignment = db.relationship("Assignments", backref="submissions")
     assignment_text = db.Column(db.Text, nullable=False)
-    submission_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow())
+    submission_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    submission_date_str = db.Column(
+        db.String,
+        nullable=False,
+        default=lambda: arrow.utcnow().to("US/Pacific").format("ddd D MMM YYYY h:mm A"),
+    )
     submission_file = db.Column(db.Text, nullable=True)
 
     def __init__(
@@ -138,6 +149,7 @@ class Submissions(db.Model):
             "course_id": self.course_id,
             "student_id": self.student_id,
             "student_name": student_name,
+            "submission_date_str": self.submission_date_str,
             "assignment_id": self.assignment_id,
             "assignment_text": self.assignment_text,
             "submission_date": self.submission_date.isoformat(),

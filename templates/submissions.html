@@ -166,9 +166,8 @@
     </div>
     <div id="submissions-modal" uk-modal>
         <div class="uk-modal-dialog uk-modal-body uk-border-rounded">
-            <h4 class="uk-modal-title uk-text-bold" style="font-size: 24px;">Add Assignment</h4>
+            <h4 class="uk-modal-title uk-text-bold" style="font-size: 24px;">Submit Assignment</h4>
             <form class="uk-form" action="/api/submit_assignment" method="post" enctype="multipart/form-data">
-
 
                 <select style="display: none;" id="course-id" name="course-id"
                     class="uk-select uk-width-1-1 uk-background-muted uk-border-rounded">
@@ -180,10 +179,13 @@
                     <!-- options will be populated dynamically -->
                 </select>
 
-                <select style="display: none;" id="assignment-id" name="assignment-id"
+                <select id="assignment-id" name="assignment-id"
                     class="uk-margin-top uk-select uk-width-1-1 uk-background-muted uk-border-rounded">
                     <!-- options will be populated dynamically -->
                 </select>
+
+                <input type="hidden" id="assignment-id-hidden" name="assignment_id" value="">
+                <!-- ... other form fields ... -->
 
                 <input type="text" placeholder="Assignment Text" name="ass-text" id="ass-text"
                     class="uk-input uk-width-1-1 uk-margin-top uk-background-muted uk-border-rounded">
@@ -235,7 +237,7 @@
           <p id="description" class="uk-text-small">${assignment.description}</p>
           <p class="uk-text-small">Due Date: ${assignment.due_date}</p>
           <a href="${assignment.assignment_file}" class="uk-text-small">Assignment File</a>
-          <p onclick="showSubmissions()" class="submit-button" style="font-weight:600;font-size:12px;cursor:hand;">Submit</p>
+          <p onclick="showSubmissions('${assignment.id}')" class="submit-button" style="font-weight:600;font-size:12px;cursor:hand;">Submit</p>
         </div>
       `;
                 const cardElement = document.createElement('div');
@@ -264,6 +266,14 @@
                 const fullName = name + ' ' + surname;
                 const student_id = Cookies.get("userId_");
 
+                const assignmentId = assignment.id;
+                const submissionModal = document.getElementById('submissions-modal');
+                const assignmentIdSelect = submissionModal.querySelector('#assignment-id');
+                const assignmentIdOption = document.createElement('option');
+                assignmentIdOption.value = assignmentId;
+                assignmentIdOption.text = assignmentId;
+                assignmentIdSelect.appendChild(assignmentIdOption);
+
                 const courseIdSelect = document.getElementById('course-id');
                 const courseIdOption = document.createElement('option');
                 courseIdOption.value = course_idf;
@@ -276,11 +286,6 @@
                 studentIdOption.text = studentId;
                 studentIdSelect.appendChild(studentIdOption);
 
-                const assIdSelect = document.getElementById('assignment-id');
-                const assIdOption = document.createElement('option');
-                assIdOption.value = assignment_id;
-                assIdOption.text = assignment_id;
-                assIdSelect.appendChild(assIdOption);
 
                 fileInput.addEventListener('change', () => {
                     const chosenFile = fileInput.files[0].name;
@@ -292,13 +297,13 @@
         .catch(error => console.error('Error fetching assignments:', error));
 
 
-
-
-
-    function showSubmissions() {
-        const addCourseModal_ = document.getElementById('submissions-modal');
-
-        UIkit.modal(addCourseModal_).show();
+    function showSubmissions(assignmentId) {
+        const submissionModal = document.getElementById('submissions-modal');
+        const assignmentIdSelect = submissionModal.querySelector('#assignment-id');
+        const assignmentIdHiddenInput = submissionModal.querySelector('#assignment-id-hidden');
+        assignmentIdSelect.value = assignmentId;
+        assignmentIdHiddenInput.value = assignmentId;
+        UIkit.modal(submissionModal).show();
     }
 </script>
 
