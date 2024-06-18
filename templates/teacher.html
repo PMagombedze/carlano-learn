@@ -52,78 +52,6 @@
         margin: 0;
         padding: 0;
     }
-
-    .dashboard-container {
-        display: flex;
-        height: 100vh;
-    }
-
-    .sidebar {
-        width: 20%;
-        background-color: rgb(255, 255, 255);
-        padding: 20px 0;
-        border-right: 1px solid #ddd;
-    }
-
-    .sidebar ul {
-        padding: 0;
-        list-style: none;
-    }
-
-    .sidebar li {
-        padding: 15px 20px;
-        color: rgb(0, 0, 0);
-        font-weight: 400;
-    }
-
-    .sidebar li a {
-        color: rgb(0, 0, 0);
-        text-decoration: none;
-        font-weight: 400;
-    }
-
-    .content {
-        width: 80%;
-        padding: 20px;
-    }
-
-    .content-heading {
-        font-size: 24px;
-        font-weight: bold;
-    }
-
-    .content-subheading {
-        font-size: 16px;
-        margin-top: 10px;
-        margin-bottom: 20px;
-        font-weight: 400;
-    }
-
-    .card-container {
-        display: flex;
-        flex-wrap: wrap;
-    }
-
-    .card {
-        width: calc(33.33% - 20px);
-        margin-right: 20px;
-        margin-bottom: 20px;
-        padding: 20px;
-        box-sizing: border-box;
-    }
-
-    .sidebar {
-        position: relative;
-        /* add this */
-    }
-
-    .logout {
-        position: absolute;
-        bottom: 20px;
-        left: 20px;
-        width: calc(100% - 40px);
-        text-align: center;
-    }
 </style>
 
 <body>
@@ -164,7 +92,7 @@
     <!-- Add a modal container to the HTML body -->
     <div id="mark-modal" uk-modal>
         <div class="uk-modal-dialog uk-modal-body uk-border-rounded">
-            <h4 class="uk-modal-title uk-text-bold" style="font-size: 24px;">Add Assignment</h4>
+            <h4 class="uk-modal-title uk-text-bold" style="font-size: 24px;">Mark Assignment</h4>
             <form class="uk-form" id="send-mark">
 
                 <input type="text" placeholder="Mark" name="mark" id="mark"
@@ -193,14 +121,15 @@
 
 
     let courseId;
-    fetch(`/api/courses?teacher_name=${fullName_}`)
+    fetch(`/api/teachers/${studentId}/courses`)
         .then(response => response.json())
         .then(data => {
-            courseId = data[0].id;
+            courseId = data.courses[0].id;
             // Fetch submissions for this course
-            fetch(`/api/submissions?course_id=${courseId}`)
+            fetch(`/api/submissions/${courseId}`)
                 .then(response => response.json())
                 .then(data => {
+                    console.log(data)
                     const cardContainer = document.querySelector('.card-container');
                     data.forEach(submission => {
                         const cardHTML = `

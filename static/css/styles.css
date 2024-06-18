@@ -41,3 +41,76 @@ textarea::-webkit-scrollbar-thumb {
 textarea::-webkit-scrollbar-track {
   background-color: #f0f0f0;
 }
+
+
+.dashboard-container {
+  display: flex;
+  height: 100vh;
+}
+
+.sidebar {
+  width: 20%;
+  background-color: rgb(255, 255, 255);
+  padding: 20px 0;
+  border-right: 1px solid #ddd;
+}
+
+.sidebar ul {
+  padding: 0;
+  list-style: none;
+}
+
+.sidebar li {
+  padding: 15px 20px;
+  color: rgb(0, 0, 0);
+  font-weight: 400;
+}
+
+.sidebar li a {
+  color: rgb(0, 0, 0);
+  text-decoration: none;
+  font-weight: 400;
+}
+
+.content {
+  width: 80%;
+  padding: 20px;
+}
+
+.content-heading {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.content-subheading {
+  font-size: 16px;
+  margin-top: 10px;
+  margin-bottom: 20px;
+  font-weight: 400;
+}
+
+.card-container {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.card {
+  width: calc(33.33% - 20px);
+  margin-right: 20px;
+  margin-bottom: 20px;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.sidebar {
+  position: relative;
+  /* add this */
+}
+
+.logout {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  width: calc(100% - 40px);
+  text-align: center;
+}

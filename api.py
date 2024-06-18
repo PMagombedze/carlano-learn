@@ -221,31 +221,13 @@ class ProtectedResource(Resource):
 
 
 class SubmissionsResource(Resource):
-    def post(self, course_id):
-        parser = reqparse.RequestParser()
-        parser.add_argument(
-            "file", type=werkzeug.datastructures.FileStorage, location="files"
-        )
-        parser.add_argument(
-            "submissions_date", required=True, help="Submissions date cannot be blank!"
-        )
-        parser.add_argument("due_date", required=True, help="Due date cannot be blank!")
-        data = parser.parse_args()
-
-        course = Course.query.filter_by(id=course_id).first()
-        if not course:
-            return {"error": "Course not found"}, 404
-
-        submissions = Submissions(
-            course_id=course_id,
-            assignment=data["file"].read(),  # Read the uploaded PDF file
-            submissions_date=datetime.strptime(data["submissions_date"], "%Y-%m-%d"),
-            due_date=datetime.strptime(data["due_date"], "%Y-%m-%d"),
-        )
-        db.session.add(submissions)
-        db.session.commit()
-
-        return {"message": "Submissions created successfully"}, 201
+    def get(self, course_id):
+        course = Course.query.get(course_id)
+        if course:
+            submissions = Submissions.query.filter_by(course_id=course_id).all()
+            return jsonify([submission.to_dict() for submission in submissions])
+        else:
+            return jsonify({"error": "Course not found"}), 404
 
 
 class CourseResource(Resource):
@@ -482,6 +464,24 @@ class MarksResource(Resource):
         return jsonify([mark.to_dict() for mark in marks])
 
 
+class TeacherCourses(Resource):
+    def get(self, teacher_id):
+        teacher = User.query.get(teacher_id)
+        if teacher:
+            courses = teacher.courses_taught
+            return jsonify(
+                {
+                    "teacher_name": f"{teacher.name} {teacher.surname}",
+                    "courses": [
+                        {"id": course.id, "title": course.title} for course in courses
+                    ],
+                }
+            )
+        else:
+            return jsonify({"error": "Teacher not found"}), 404
+
+
+api.add_resource(TeacherCourses, "/api/teachers/<string:teacher_id>/courses")
 api.add_resource(MarksResource, "/api/marks")
 api.add_resource(AllSubmissions, "/api/submissions")
 api.add_resource(AssignmentListAPI, "/api/assignments")
@@ -492,7 +492,7 @@ api.add_resource(
 api.add_resource(EnrollStudent, "/api/students/enroll")
 api.add_resource(StudentCourses, "/api/students/<string:student_id>/courses")
 api.add_resource(CourseResource, "/api/courses", "/api/courses/<string:course_id>")
-api.add_resource(SubmissionsResource, "/api/courses/<string:course_id>/submissions")
+api.add_resource(SubmissionsResource, "/api/submissions/<string:course_id>")
 api.add_resource(ProtectedResource, "/api/protected")
 api.add_resource(Signup, "/api/signup")
 api.add_resource(Users, "/api/signup/users", "/api/signup/users/<string:id>")
