@@ -2,12 +2,13 @@ from flask_restful import Resource, Api, reqparse
 from flask import request, jsonify
 from models import User, db, Course, Submissions, CourseEnrollment, Assignments, Marks
 from dotenv import load_dotenv
-import pydantic, werkzeug
-from datetime import datetime, timedelta
+import pydantic
+from datetime import timedelta
 from flask_mail import Mail, Message
 import os
 import re
 
+from flask_caching import Cache
 
 from flask_jwt_extended import (
     JWTManager,
@@ -16,11 +17,14 @@ from flask_jwt_extended import (
     get_jwt_identity,
 )
 
+from pydantic import BaseModel, EmailStr
+
+
 api = Api()
 jwt = JWTManager()
 mail = Mail()
+cache = Cache()
 
-from pydantic import BaseModel, EmailStr
 
 load_dotenv()
 
@@ -253,6 +257,7 @@ class CourseResource(Resource):
 
         return jsonify({"message": "Course created successfully"})
 
+    @cache.cached(timeout=300)
     def get(self):
         courses = Course.query.all()
         return jsonify(

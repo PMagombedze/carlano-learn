@@ -9,7 +9,7 @@ from datetime import datetime
 from dotenv import load_dotenv
 from werkzeug.utils import secure_filename
 
-from api import api, jwt, mail
+from api import api, jwt, mail, cache
 
 app = Flask(__name__)
 
@@ -118,6 +118,7 @@ with app.app_context():
     jwt.init_app(app)
     db.init_app(app)
     mail.init_app(app)
+    cache.init_app(app)
     db.create_all()
 
 if __name__ == "__main__":

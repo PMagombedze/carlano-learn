@@ -18,3 +18,5 @@ class Config:
     MAIL_USERNAME = os.getenv("MAIL_USERNAME")
     MAIL_PASSWORD = os.getenv("MAIL_APP_PASSWORD")
     MINIFY_HTML = True
+    CACHE_TYPE = "SimpleCache"
+    CACHE_REDIS_URL = "redis://localhost:6379/0"
