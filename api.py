@@ -1,7 +1,6 @@
 from flask_restful import Resource, Api, reqparse
 from flask import request, jsonify
 from models import User, db, Course, Submissions, CourseEnrollment, Assignments, Marks
-from dotenv import load_dotenv
 import pydantic
 from datetime import timedelta
 from flask_mail import Mail, Message
@@ -24,9 +23,6 @@ api = Api()
 jwt = JWTManager()
 mail = Mail()
 cache = Cache()
-
-
-load_dotenv()
 
 
 commonPasswords = [
@@ -378,7 +374,7 @@ class ForgotPassword(Resource):
         # Send the reset token to the user via email
         msg = Message(
             "Password Reset Token",
-            sender=("Carlano Team", os.getenv("MAIL_USERNAME")),
+            sender=("Carlano Team", os.environ.get("MAIL_USERNAME")),
             recipients=[user.email],
         )
         msg.body = f"Hello {user.name},\n\nPlease click on the following link to reset your password: http://localhost:5000/auth/reset_password?token={reset_token}\n\nBest regards,\nThe Support Team"
