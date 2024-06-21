@@ -6,6 +6,7 @@ from flask_migrate import Migrate
 from config import Config
 from models import *
 from datetime import datetime
+from dotenv import load_dotenv
 from werkzeug.utils import secure_filename
 
 from api import api, jwt, mail, cache
@@ -16,6 +17,7 @@ app = Flask(__name__)
 app.config.from_object(Config)
 migrate = Migrate(app, db)
 
+load_dotenv()
 
 app.register_blueprint(auth, url_prefix="/")
 app.register_blueprint(views, url_prefix="/")
@@ -120,4 +122,4 @@ with app.app_context():
     db.create_all()
 
 if __name__ == "__main__":
-    app.run(port=5000, debug=True)
+    app.run(port=5000, debug=False)
